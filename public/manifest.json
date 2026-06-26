@@ -1,0 +1,26 @@
+{
+  "name": "Dada Dojo",
+  "short_name": "Dada Dojo",
+  "description": "Daily Goal Tracker for Kids - Earn points, complete goals, and spend them in the reward store!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0a1a",
+  "theme_color": "#a855f7",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "education", "productivity"]
+}

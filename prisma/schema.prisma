@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  kids          Kid[]
+  chores        Chore[]
+  storeItems    StoreItem[]
+  listItems     ListItem[]
+  calendarEvents CalendarEvent[]
+}
+
+model Kid {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  avatarEmoji  String   @default("🥋")
+  totalPoints  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choreLogs    ChoreLog[]
+  purchases    Purchase[]
+  adjustments  PointAdjustment[]
+}
+
+model Chore {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  icon      String   @default("✅")
+  points    Int      @default(1)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choreLogs ChoreLog[]
+}
+
+model ChoreLog {
+  id        String   @id @default(cuid())
+  kidId     String
+  choreId   String
+  points    Int
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  kid   Kid   @relation(fields: [kidId], references: [id], onDelete: Cascade)
+  chore Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
+}
+
+model StoreItem {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String   @default("")
+  pointCost   Int
+  icon        String   @default("🎁")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchases  Purchase[]
+}
+
+model Purchase {
+  id          String   @id @default(cuid())
+  kidId       String
+  storeItemId String
+  pointsSpent Int
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  kid       Kid       @relation(fields: [kidId], references: [id], onDelete: Cascade)
+  storeItem StoreItem @relation(fields: [storeItemId], references: [id], onDelete: Cascade)
+}
+
+model ListItem {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String   @default("")
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String   @default("")
+  startDate   DateTime
+  endDate     DateTime
+  allDay      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PointAdjustment {
+  id        String   @id @default(cuid())
+  kidId     String
+  amount    Int
+  reason    String   @default("")
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  kid Kid @relation(fields: [kidId], references: [id], onDelete: Cascade)
+}
