@@ -579,6 +579,143 @@
     }, label));
   }
 
+  // ════════════════════════════════════════════════════════════════
+  // KID-FRIENDLY THEME SCHEMES
+  // Each theme overrides the CSS variables on :root.
+  // ════════════════════════════════════════════════════════════════
+  const THEMES = {
+    galaxy: {
+      name: 'Galaxy',
+      emoji: '🌌',
+      vars: {
+        '--background': '#0f0a1a',
+        '--foreground': '#f0e6ff',
+        '--card': '#1a1029',
+        '--primary': '#a855f7',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#2d1f45',
+        '--secondary-foreground': '#f0e6ff',
+        '--muted': '#2d1f45',
+        '--muted-foreground': '#a78bfa',
+        '--accent': '#3b2760',
+        '--accent-foreground': '#f0e6ff',
+        '--border': '#3b2760',
+        '--input': '#3b2760',
+        '--ring': '#a855f7'
+      }
+    },
+    ocean: {
+      name: 'Ocean',
+      emoji: '🌊',
+      vars: {
+        '--background': '#0a1428',
+        '--foreground': '#e0f2fe',
+        '--card': '#0f1e3a',
+        '--primary': '#0ea5e9',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#1e3a5f',
+        '--secondary-foreground': '#e0f2fe',
+        '--muted': '#1e3a5f',
+        '--muted-foreground': '#7dd3fc',
+        '--accent': '#1e3a5f',
+        '--accent-foreground': '#e0f2fe',
+        '--border': '#1e3a5f',
+        '--input': '#1e3a5f',
+        '--ring': '#0ea5e9'
+      }
+    },
+    jungle: {
+      name: 'Jungle',
+      emoji: '🌿',
+      vars: {
+        '--background': '#0a1f0e',
+        '--foreground': '#dcfce7',
+        '--card': '#0f2916',
+        '--primary': '#22c55e',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#1a3a23',
+        '--secondary-foreground': '#dcfce7',
+        '--muted': '#1a3a23',
+        '--muted-foreground': '#86efac',
+        '--accent': '#1a3a23',
+        '--accent-foreground': '#dcfce7',
+        '--border': '#1a3a23',
+        '--input': '#1a3a23',
+        '--ring': '#22c55e'
+      }
+    },
+    sunset: {
+      name: 'Sunset',
+      emoji: '🌅',
+      vars: {
+        '--background': '#1a0f0a',
+        '--foreground': '#fff7ed',
+        '--card': '#2a1810',
+        '--primary': '#f97316',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#3a2418',
+        '--secondary-foreground': '#fff7ed',
+        '--muted': '#3a2418',
+        '--muted-foreground': '#fdba74',
+        '--accent': '#3a2418',
+        '--accent-foreground': '#fff7ed',
+        '--border': '#3a2418',
+        '--input': '#3a2418',
+        '--ring': '#f97316'
+      }
+    },
+    bubblegum: {
+      name: 'Bubblegum',
+      emoji: '🍬',
+      vars: {
+        '--background': '#1f0a18',
+        '--foreground': '#fce7f3',
+        '--card': '#2a1023',
+        '--primary': '#ec4899',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#3a1a2f',
+        '--secondary-foreground': '#fce7f3',
+        '--muted': '#3a1a2f',
+        '--muted-foreground': '#f9a8d4',
+        '--accent': '#3a1a2f',
+        '--accent-foreground': '#fce7f3',
+        '--border': '#3a1a2f',
+        '--input': '#3a1a2f',
+        '--ring': '#ec4899'
+      }
+    },
+    space: {
+      name: 'Space',
+      emoji: '🚀',
+      vars: {
+        '--background': '#0a0a1f',
+        '--foreground': '#e0e7ff',
+        '--card': '#101029',
+        '--primary': '#6366f1',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#1f1f4a',
+        '--secondary-foreground': '#e0e7ff',
+        '--muted': '#1f1f4a',
+        '--muted-foreground': '#a5b4fc',
+        '--accent': '#1f1f4a',
+        '--accent-foreground': '#e0e7ff',
+        '--border': '#1f1f4a',
+        '--input': '#1f1f4a',
+        '--ring': '#6366f1'
+      }
+    }
+  };
+
+  // Helper to apply a theme to the document root
+  function applyTheme(themeId) {
+    const theme = THEMES[themeId] || THEMES.galaxy;
+    const root = document.documentElement;
+    Object.entries(theme.vars).forEach(([k, v]) => {
+      root.style.setProperty(k, v);
+    });
+    document.body.style.background = theme.vars['--background'];
+  }
+
   // (Continued in next script block — same babel scope via window.__ddPart2)
   window.__ddBootstrap = function (components) {
     const {
@@ -646,6 +783,7 @@
               const fam = {
                 name: name || email.split('@')[0] || 'Family',
                 email,
+                password,
                 createdAt: new Date().toISOString()
               };
               const next = {
@@ -665,6 +803,7 @@
             const fam = {
               name: name.trim(),
               email,
+              password,
               createdAt: new Date().toISOString()
             };
             const next = {
@@ -786,9 +925,783 @@
       icon: 'settings',
       label: 'Settings'
     }];
+
+    // ════════════════════════════════════════════════════════════════
+    // PARENT GATE — password prompt to enter parent mode
+    // ════════════════════════════════════════════════════════════════
+    function ParentGate({
+      family,
+      onSuccess,
+      onCancel
+    }) {
+      const {
+        error
+      } = useToast();
+      const [pw, setPw] = useState('');
+      const [showPw, setShowPw] = useState(false);
+      return /*#__PURE__*/React.createElement(Dialog, {
+        open: true,
+        onOpenChange: () => onCancel()
+      }, /*#__PURE__*/React.createElement(DialogContent, null, /*#__PURE__*/React.createElement(DialogHeader, null, /*#__PURE__*/React.createElement(DialogTitle, null, "Parent Access 🔒")), /*#__PURE__*/React.createElement("form", {
+        onSubmit: e => {
+          e.preventDefault();
+          if (pw === family.password) {
+            onSuccess();
+          } else {
+            error('Wrong password!');
+            setPw('');
+          }
+        },
+        className: "space-y-4"
+      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Label, null, "Enter Parent Password"), /*#__PURE__*/React.createElement("div", {
+        className: "relative mt-1"
+      }, /*#__PURE__*/React.createElement(Input, {
+        type: showPw ? 'text' : 'password',
+        value: pw,
+        onChange: e => setPw(e.target.value),
+        className: "bg-secondary/50 pr-10",
+        required: true,
+        autoFocus: true,
+        placeholder: "••••••••"
+      }), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        onClick: () => setShowPw(!showPw),
+        className: "absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: showPw ? 'eyeOff' : 'eye',
+        size: 16
+      })))), /*#__PURE__*/React.createElement(DialogFooter, null, /*#__PURE__*/React.createElement(Button, {
+        type: "button",
+        variant: "ghost",
+        onClick: () => onCancel()
+      }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+        type: "submit",
+        className: "bg-primary hover:bg-primary/90"
+      }, "Unlock")))));
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // KIDS DASHBOARD — view-only for goals/points/calendar,
+    // interactive for store. Has theme picker in settings.
+    // ════════════════════════════════════════════════════════════════
+    const KIDS_TABS = [{
+      id: 'home',
+      icon: 'home',
+      label: 'Home'
+    }, {
+      id: 'goals',
+      icon: 'target',
+      label: 'My Goals'
+    }, {
+      id: 'points',
+      icon: 'trophy',
+      label: 'My Points'
+    }, {
+      id: 'store',
+      icon: 'store',
+      label: 'Store'
+    }, {
+      id: 'calendar',
+      icon: 'calendar',
+      label: 'Calendar'
+    }, {
+      id: 'theme',
+      icon: 'settings',
+      label: 'Theme'
+    }];
+    function KidsHome({
+      family,
+      onSwitchToParent,
+      onSignOut
+    }) {
+      const {
+        success,
+        info,
+        error
+      } = useToast();
+      const [data, setData] = useState(() => loadData());
+      const [tab, setTab] = useState('home');
+      const [mobileNav, setMobileNav] = useState(false);
+      const [selectedKidId, setSelectedKidId] = useState('');
+      const [calMonth, setCalMonth] = useState(new Date());
+      const [parentGateOpen, setParentGateOpen] = useState(false);
+      useEffect(() => {
+        saveData(data);
+      }, [data]);
+
+      // Initialize selected kid
+      useEffect(() => {
+        if (!selectedKidId && data.kids.length > 0) {
+          setSelectedKidId(data.kids[0].id);
+        }
+        if (selectedKidId && !data.kids.find(k => k.id === selectedKidId)) {
+          setSelectedKidId(data.kids[0]?.id || '');
+        }
+      }, [data.kids, selectedKidId]);
+
+      // Apply the selected kid's theme whenever it changes
+      useEffect(() => {
+        const kid = data.kids.find(k => k.id === selectedKidId);
+        applyTheme(kid?.theme || 'galaxy');
+      }, [selectedKidId, data.kids]);
+      const selectedKid = data.kids.find(k => k.id === selectedKidId) || null;
+      const todayChecks = (data.choreChecks[todayStr()] || {})[selectedKidId] || {};
+
+      // 7-day activity log for selected kid
+      const weekLogs = useMemo(() => {
+        const sevenAgo = new Date();
+        sevenAgo.setDate(sevenAgo.getDate() - 7);
+        return data.choreLogs.filter(l => l.kidId === selectedKidId && new Date(l.date) >= sevenAgo).sort((a, b) => new Date(b.date) - new Date(a.date));
+      }, [data.choreLogs, selectedKidId]);
+      const weeklyPoints = () => {
+        const days = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dayStr = d.toISOString().split('T')[0];
+          const dayPts = data.choreLogs.filter(l => l.kidId === selectedKidId && l.date.startsWith(dayStr)).reduce((sum, l) => sum + l.points, 0);
+          days.push({
+            day: dayNames[d.getDay()],
+            pts: dayPts
+          });
+        }
+        return days;
+      };
+      const weekData = weeklyPoints();
+      const weekTotal = weekData.reduce((s, d) => s + d.pts, 0);
+      const maxChart = Math.max(...weekData.map(d => d.pts), 1);
+
+      // ── Mutators (only store purchase + theme change) ───────
+      const purchaseItem = storeItemId => {
+        if (!selectedKidId) return;
+        const item = data.storeItems.find(i => i.id === storeItemId);
+        if (!item) return;
+        const kid = data.kids.find(k => k.id === selectedKidId);
+        if (!kid) return;
+        if (kid.totalPoints < item.pointCost) {
+          error('Not enough points!');
+          return;
+        }
+        const log = {
+          id: uid(),
+          kidId: selectedKidId,
+          choreId: null,
+          points: -item.pointCost,
+          date: new Date().toISOString(),
+          action: 'purchase',
+          reason: 'Bought: ' + item.name
+        };
+        setData(d => ({
+          ...d,
+          kids: d.kids.map(k => k.id === selectedKidId ? {
+            ...k,
+            totalPoints: k.totalPoints - item.pointCost
+          } : k),
+          choreLogs: [log, ...d.choreLogs]
+        }));
+        success('Purchase successful! 🎉');
+      };
+      const setKidTheme = themeId => {
+        setData(d => ({
+          ...d,
+          kids: d.kids.map(k => k.id === selectedKidId ? {
+            ...k,
+            theme: themeId
+          } : k)
+        }));
+        success('Theme updated! ' + (THEMES[themeId]?.emoji || ''));
+      };
+
+      // ── Calendar helpers ───────────────────────────────────
+      const calYear = calMonth.getFullYear();
+      const calMon = calMonth.getMonth();
+      const calDaysInMonth = new Date(calYear, calMon + 1, 0).getDate();
+      const calFirstDay = new Date(calYear, calMon, 1).getDay();
+      const calEventsForMonth = data.calendarEvents.filter(ev => {
+        const d = new Date(ev.startDate);
+        return d.getMonth() === calMon && d.getFullYear() === calYear;
+      });
+      const calEventDates = new Set(calEventsForMonth.map(ev => new Date(ev.startDate).getDate()));
+      const todayDate = new Date();
+
+      // ═══════════════════════════════════════════════════════
+      // KID SELECTOR (simpler than parent — no points badge)
+      // ═══════════════════════════════════════════════════════
+      const KidSelector = () => /*#__PURE__*/React.createElement("div", {
+        className: "flex gap-2 flex-wrap"
+      }, data.kids.map(k => /*#__PURE__*/React.createElement("button", {
+        key: k.id,
+        onClick: () => setSelectedKidId(k.id),
+        className: cn('flex items-center gap-2 px-4 py-2 rounded-xl transition-all', k.id === selectedKidId ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground')
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-xl"
+      }, k.avatarEmoji), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium"
+      }, k.name))));
+
+      // ═══════════════════════════════════════════════════════
+      // HOME TAB
+      // ═══════════════════════════════════════════════════════
+      const HomeTab = () => {
+        const today = new Date();
+        const todayEv = data.calendarEvents.filter(e => {
+          const ed = new Date(e.startDate);
+          return ed.toDateString() === today.toDateString();
+        });
+        const goalsDone = Object.values(todayChecks).filter(Boolean).length;
+        return /*#__PURE__*/React.createElement("div", {
+          className: "space-y-6"
+        }, /*#__PURE__*/React.createElement(Card, {
+          className: "bg-gradient-to-br from-primary/30 to-card border-primary/30"
+        }, /*#__PURE__*/React.createElement(CardContent, {
+          className: "p-6"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "flex flex-col items-center text-center gap-2"
+        }, /*#__PURE__*/React.createElement("span", {
+          className: "text-6xl"
+        }, selectedKid.avatarEmoji), /*#__PURE__*/React.createElement("h2", {
+          className: "text-3xl font-bold"
+        }, "Hi, ", selectedKid.name, "!"), /*#__PURE__*/React.createElement("div", {
+          className: "flex items-baseline gap-2 mt-2"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "star",
+          size: 32,
+          className: "text-yellow-400"
+        }), /*#__PURE__*/React.createElement("span", {
+          className: "text-5xl font-bold"
+        }, selectedKid.totalPoints), /*#__PURE__*/React.createElement("span", {
+          className: "text-xl text-muted-foreground"
+        }, "points"))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardHeader, {
+          className: "pb-3"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "flex justify-between items-center"
+        }, /*#__PURE__*/React.createElement(CardTitle, {
+          className: "text-lg"
+        }, "Today's Goals 🎯"), /*#__PURE__*/React.createElement(Badge, {
+          className: "bg-primary/20 text-primary"
+        }, goalsDone, "/", data.chores.length))), /*#__PURE__*/React.createElement(CardContent, null, data.chores.length === 0 ? /*#__PURE__*/React.createElement("p", {
+          className: "text-muted-foreground text-center py-4"
+        }, "No goals yet — ask a parent to add some!") : /*#__PURE__*/React.createElement("div", {
+          className: "space-y-2"
+        }, data.chores.map(chore => {
+          const done = !!todayChecks[chore.id];
+          return /*#__PURE__*/React.createElement("div", {
+            key: chore.id,
+            className: cn('flex items-center gap-3 p-3 rounded-lg transition-colors', done ? 'bg-green-600/15' : 'bg-secondary/30')
+          }, /*#__PURE__*/React.createElement("span", {
+            className: "text-2xl"
+          }, chore.icon), /*#__PURE__*/React.createElement("span", {
+            className: cn('flex-1 font-medium', done && 'line-through text-muted-foreground')
+          }, chore.name), /*#__PURE__*/React.createElement(Badge, {
+            className: done ? 'bg-green-600/30 text-green-300' : 'bg-primary/20 text-primary'
+          }, "+", chore.points), done && /*#__PURE__*/React.createElement(Icon, {
+            name: "check",
+            size: 20,
+            className: "text-green-400"
+          }));
+        })))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardHeader, {
+          className: "pb-3"
+        }, /*#__PURE__*/React.createElement(CardTitle, {
+          className: "text-lg"
+        }, "Today's Events 📅")), /*#__PURE__*/React.createElement(CardContent, null, todayEv.length === 0 ? /*#__PURE__*/React.createElement("p", {
+          className: "text-muted-foreground text-center py-4"
+        }, "Nothing scheduled today!") : /*#__PURE__*/React.createElement("div", {
+          className: "space-y-2"
+        }, todayEv.map(ev => /*#__PURE__*/React.createElement("div", {
+          key: ev.id,
+          className: "p-3 rounded-lg bg-secondary/30"
+        }, /*#__PURE__*/React.createElement("p", {
+          className: "font-medium"
+        }, ev.name), ev.description && /*#__PURE__*/React.createElement("p", {
+          className: "text-xs text-muted-foreground mt-0.5"
+        }, ev.description), !ev.allDay && /*#__PURE__*/React.createElement("p", {
+          className: "text-xs text-primary mt-1"
+        }, new Date(ev.startDate).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        }))))))), selectedKid.totalPoints > 0 && /*#__PURE__*/React.createElement(Card, {
+          className: "bg-gradient-to-br from-primary/20 to-card border-primary/30"
+        }, /*#__PURE__*/React.createElement(CardContent, {
+          className: "p-6 text-center"
+        }, /*#__PURE__*/React.createElement("p", {
+          className: "text-lg mb-3"
+        }, "You have ", /*#__PURE__*/React.createElement("span", {
+          className: "font-bold text-primary"
+        }, selectedKid.totalPoints), " points to spend!"), /*#__PURE__*/React.createElement(Button, {
+          onClick: () => setTab('store'),
+          className: "bg-primary hover:bg-primary/90"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "store",
+          size: 18
+        }), " Visit Store"))));
+      };
+
+      // ═══════════════════════════════════════════════════════
+      // GOALS TAB (view-only)
+      // ═══════════════════════════════════════════════════════
+      const GoalsTab = () => /*#__PURE__*/React.createElement("div", {
+        className: "space-y-4"
+      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+        className: "text-xl font-bold"
+      }, "My Goals"), /*#__PURE__*/React.createElement("p", {
+        className: "text-sm text-muted-foreground"
+      }, "All the goals you can earn points from!")), data.chores.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardContent, {
+        className: "py-12 text-center"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "target",
+        size: 40,
+        className: "mx-auto mb-3 text-muted-foreground"
+      }), /*#__PURE__*/React.createElement("p", {
+        className: "text-muted-foreground"
+      }, "No goals yet — ask a parent to add some!"))) : /*#__PURE__*/React.createElement("div", {
+        className: "grid grid-cols-1 sm:grid-cols-2 gap-3"
+      }, data.chores.map(chore => {
+        const done = !!todayChecks[chore.id];
+        return /*#__PURE__*/React.createElement(Card, {
+          key: chore.id,
+          className: cn(done ? 'bg-green-600/10 border-green-500/30' : 'bg-card/80')
+        }, /*#__PURE__*/React.createElement(CardContent, {
+          className: "p-4 flex items-center gap-3"
+        }, /*#__PURE__*/React.createElement("span", {
+          className: "text-3xl"
+        }, chore.icon), /*#__PURE__*/React.createElement("div", {
+          className: "flex-1"
+        }, /*#__PURE__*/React.createElement("p", {
+          className: "font-medium"
+        }, chore.name), /*#__PURE__*/React.createElement("p", {
+          className: "text-xs text-muted-foreground"
+        }, "+", chore.points, " points")), done ? /*#__PURE__*/React.createElement(Badge, {
+          className: "bg-green-600/30 text-green-300"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "check",
+          size: 12
+        }), " Done") : /*#__PURE__*/React.createElement(Badge, {
+          variant: "outline",
+          className: "text-muted-foreground"
+        }, "To do")));
+      })));
+
+      // ═══════════════════════════════════════════════════════
+      // POINTS TAB (view-only)
+      // ═══════════════════════════════════════════════════════
+      const PointsTab = () => /*#__PURE__*/React.createElement("div", {
+        className: "space-y-6"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-center"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "inline-flex items-baseline gap-2 mb-1"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "star",
+        size: 32,
+        className: "text-yellow-400"
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "text-6xl font-bold"
+      }, selectedKid.totalPoints)), /*#__PURE__*/React.createElement("p", {
+        className: "text-muted-foreground"
+      }, "Total Points")), /*#__PURE__*/React.createElement("div", {
+        className: "grid grid-cols-2 gap-3"
+      }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardContent, {
+        className: "p-4 text-center"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "trendingUp",
+        size: 28,
+        className: "text-green-400 mb-1 mx-auto"
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "text-2xl font-bold"
+      }, weekTotal), /*#__PURE__*/React.createElement("p", {
+        className: "text-xs text-muted-foreground"
+      }, "This Week"))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardContent, {
+        className: "p-4 text-center"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "award",
+        size: 28,
+        className: "text-yellow-400 mb-1 mx-auto"
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "text-2xl font-bold"
+      }, weekData.filter(d => d.pts > 0).length), /*#__PURE__*/React.createElement("p", {
+        className: "text-xs text-muted-foreground"
+      }, "Active Days")))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardHeader, {
+        className: "pb-3"
+      }, /*#__PURE__*/React.createElement(CardTitle, {
+        className: "text-base"
+      }, "Weekly Points")), /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-end gap-2 h-40"
+      }, weekData.map((d, i) => /*#__PURE__*/React.createElement("div", {
+        key: i,
+        className: "flex-1 flex flex-col items-center gap-1"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-xs font-medium text-primary"
+      }, d.pts > 0 ? d.pts : ''), /*#__PURE__*/React.createElement("div", {
+        className: "w-full bg-secondary/50 rounded-t-md relative",
+        style: {
+          height: '100%'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary to-primary/60 rounded-t-md transition-all duration-500",
+        style: {
+          height: `${maxChart > 0 ? d.pts / maxChart * 100 : 0}%`
+        }
+      })), /*#__PURE__*/React.createElement("span", {
+        className: "text-xs text-muted-foreground"
+      }, d.day)))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardHeader, {
+        className: "pb-3"
+      }, /*#__PURE__*/React.createElement(CardTitle, {
+        className: "text-base"
+      }, "Recent Activity")), /*#__PURE__*/React.createElement(CardContent, null, weekLogs.length === 0 ? /*#__PURE__*/React.createElement("p", {
+        className: "text-muted-foreground text-sm py-4 text-center"
+      }, "No activity yet!") : /*#__PURE__*/React.createElement(ScrollArea, {
+        className: "max-h-96"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "space-y-2"
+      }, weekLogs.slice(0, 20).map(log => /*#__PURE__*/React.createElement("div", {
+        key: log.id,
+        className: "flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-lg"
+      }, log.choreId ? data.chores.find(c => c.id === log.choreId)?.icon || '✅' : log.action === 'purchase' ? '🛍️' : '⭐'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+        className: "text-sm font-medium"
+      }, log.reason || 'Activity'), /*#__PURE__*/React.createElement("p", {
+        className: "text-xs text-muted-foreground"
+      }, new Date(log.date).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric'
+      })))), /*#__PURE__*/React.createElement(Badge, {
+        className: log.points >= 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'
+      }, log.points >= 0 ? '+' : '', log.points))))))));
+
+      // ═══════════════════════════════════════════════════════
+      // STORE TAB (interactive — kids can buy)
+      // ═══════════════════════════════════════════════════════
+      const StoreTab = () => {
+        const activeItems = data.storeItems.filter(i => i.isActive);
+        return /*#__PURE__*/React.createElement("div", {
+          className: "space-y-4"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "text-center"
+        }, /*#__PURE__*/React.createElement("h2", {
+          className: "text-2xl font-bold"
+        }, "🎁 Store"), /*#__PURE__*/React.createElement("p", {
+          className: "text-sm text-muted-foreground mt-1"
+        }, "You have ", /*#__PURE__*/React.createElement("span", {
+          className: "text-primary font-bold text-lg"
+        }, selectedKid.totalPoints), " points")), activeItems.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardContent, {
+          className: "py-12 text-center"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "gift",
+          size: 40,
+          className: "mx-auto mb-3 text-muted-foreground"
+        }), /*#__PURE__*/React.createElement("p", {
+          className: "text-muted-foreground"
+        }, "No prizes available yet — ask a parent to add some!"))) : /*#__PURE__*/React.createElement("div", {
+          className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+        }, activeItems.map(item => {
+          const canAfford = selectedKid.totalPoints >= item.pointCost;
+          return /*#__PURE__*/React.createElement(Card, {
+            key: item.id,
+            className: cn('bg-card/80 transition-all', canAfford ? 'hover:border-primary/40 hover:scale-[1.02]' : 'opacity-60')
+          }, /*#__PURE__*/React.createElement(CardContent, {
+            className: "p-4"
+          }, /*#__PURE__*/React.createElement("div", {
+            className: "text-center mb-3"
+          }, /*#__PURE__*/React.createElement("span", {
+            className: "text-5xl"
+          }, item.icon)), /*#__PURE__*/React.createElement("h3", {
+            className: "font-medium text-center mb-1"
+          }, item.name), item.description && /*#__PURE__*/React.createElement("p", {
+            className: "text-xs text-muted-foreground text-center mb-3"
+          }, item.description), /*#__PURE__*/React.createElement("div", {
+            className: "flex items-center justify-between mt-3"
+          }, /*#__PURE__*/React.createElement(Badge, {
+            className: "bg-primary/20 text-primary"
+          }, /*#__PURE__*/React.createElement(Icon, {
+            name: "star",
+            size: 12
+          }), item.pointCost), /*#__PURE__*/React.createElement(Button, {
+            size: "sm",
+            disabled: !canAfford,
+            onClick: () => purchaseItem(item.id),
+            className: canAfford ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary text-muted-foreground'
+          }, /*#__PURE__*/React.createElement(Icon, {
+            name: "shoppingBag",
+            size: 14
+          }), canAfford ? 'Buy!' : 'Need more'))));
+        })));
+      };
+
+      // ═══════════════════════════════════════════════════════
+      // CALENDAR TAB (view-only, same as parent)
+      // ═══════════════════════════════════════════════════════
+      const CalendarTab = () => {
+        const upcomingEvents = data.calendarEvents.filter(e => new Date(e.startDate) >= new Date(new Date().toDateString())).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        return /*#__PURE__*/React.createElement("div", {
+          className: "space-y-4"
+        }, /*#__PURE__*/React.createElement("h2", {
+          className: "text-xl font-bold"
+        }, "Calendar 📅"), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardContent, {
+          className: "p-4"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "flex items-center justify-between mb-4"
+        }, /*#__PURE__*/React.createElement("button", {
+          onClick: () => setCalMonth(new Date(calYear, calMon - 1)),
+          className: "p-2 rounded-lg hover:bg-secondary"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "chevronLeft",
+          size: 20
+        })), /*#__PURE__*/React.createElement("h3", {
+          className: "text-lg font-bold"
+        }, calMonth.toLocaleDateString(undefined, {
+          month: 'long',
+          year: 'numeric'
+        })), /*#__PURE__*/React.createElement("button", {
+          onClick: () => setCalMonth(new Date(calYear, calMon + 1)),
+          className: "p-2 rounded-lg hover:bg-secondary"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "chevronRight",
+          size: 20
+        }))), /*#__PURE__*/React.createElement("div", {
+          className: "grid grid-cols-7 gap-1 text-center"
+        }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => /*#__PURE__*/React.createElement("div", {
+          key: d,
+          className: "text-xs text-muted-foreground py-2 font-medium"
+        }, d)), Array.from({
+          length: calFirstDay
+        }).map((_, i) => /*#__PURE__*/React.createElement("div", {
+          key: 'empty-' + i
+        })), Array.from({
+          length: calDaysInMonth
+        }).map((_, i) => {
+          const day = i + 1;
+          const hasEvent = calEventDates.has(day);
+          const isToday = day === todayDate.getDate() && calMon === todayDate.getMonth() && calYear === todayDate.getFullYear();
+          return /*#__PURE__*/React.createElement("div", {
+            key: day,
+            className: cn('relative py-2 rounded-lg text-sm transition-all', isToday ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-secondary')
+          }, day, hasEvent && /*#__PURE__*/React.createElement("div", {
+            className: "absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-pink-400"
+          }));
+        })))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(CardHeader, {
+          className: "pb-3"
+        }, /*#__PURE__*/React.createElement(CardTitle, {
+          className: "text-base"
+        }, "Upcoming Events")), /*#__PURE__*/React.createElement(CardContent, null, upcomingEvents.length === 0 ? /*#__PURE__*/React.createElement("p", {
+          className: "text-muted-foreground text-sm py-4 text-center"
+        }, "No upcoming events") : /*#__PURE__*/React.createElement(ScrollArea, {
+          className: "max-h-64"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "space-y-2"
+        }, upcomingEvents.map(event => /*#__PURE__*/React.createElement("div", {
+          key: event.id,
+          className: "py-2 border-b border-border/50 last:border-0"
+        }, /*#__PURE__*/React.createElement("p", {
+          className: "text-sm font-medium"
+        }, event.name), event.description && /*#__PURE__*/React.createElement("p", {
+          className: "text-xs text-muted-foreground"
+        }, event.description), /*#__PURE__*/React.createElement("p", {
+          className: "text-xs text-primary mt-0.5"
+        }, new Date(event.startDate).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric'
+        }), event.allDay ? ' (All Day)' : ` at ${new Date(event.startDate).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`))))))));
+      };
+
+      // ═══════════════════════════════════════════════════════
+      // THEME TAB — kid-friendly theme picker
+      // ═══════════════════════════════════════════════════════
+      const ThemeTab = () => {
+        const currentTheme = selectedKid?.theme || 'galaxy';
+        return /*#__PURE__*/React.createElement("div", {
+          className: "space-y-4"
+        }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+          className: "text-xl font-bold"
+        }, "Pick Your Theme! 🎨"), /*#__PURE__*/React.createElement("p", {
+          className: "text-sm text-muted-foreground"
+        }, "Choose a color scheme for your dashboard.")), /*#__PURE__*/React.createElement("div", {
+          className: "grid grid-cols-2 sm:grid-cols-3 gap-3"
+        }, Object.entries(THEMES).map(([id, theme]) => {
+          const selected = currentTheme === id;
+          return /*#__PURE__*/React.createElement("button", {
+            key: id,
+            onClick: () => setKidTheme(id),
+            className: cn('p-4 rounded-xl border-2 transition-all text-left', selected ? 'border-primary shadow-lg shadow-primary/20 scale-[1.02]' : 'border-border hover:border-primary/50'),
+            style: {
+              background: theme.vars['--card'],
+              color: theme.vars['--foreground']
+            }
+          }, /*#__PURE__*/React.createElement("div", {
+            className: "flex items-center gap-2 mb-3"
+          }, /*#__PURE__*/React.createElement("span", {
+            className: "text-3xl"
+          }, theme.emoji), /*#__PURE__*/React.createElement("span", {
+            className: "font-bold"
+          }, theme.name), selected && /*#__PURE__*/React.createElement("span", {
+            className: "ml-auto"
+          }, /*#__PURE__*/React.createElement(Icon, {
+            name: "check",
+            size: 20,
+            style: {
+              color: theme.vars['--primary']
+            }
+          }))), /*#__PURE__*/React.createElement("div", {
+            className: "flex gap-1"
+          }, /*#__PURE__*/React.createElement("div", {
+            className: "w-7 h-7 rounded-full",
+            style: {
+              background: theme.vars['--primary']
+            }
+          }), /*#__PURE__*/React.createElement("div", {
+            className: "w-7 h-7 rounded-full",
+            style: {
+              background: theme.vars['--secondary']
+            }
+          }), /*#__PURE__*/React.createElement("div", {
+            className: "w-7 h-7 rounded-full border",
+            style: {
+              background: theme.vars['--background'],
+              borderColor: theme.vars['--border']
+            }
+          })));
+        })));
+      };
+
+      // ═══════════════════════════════════════════════════════
+      // RENDER
+      // ═══════════════════════════════════════════════════════
+      // No-kids state — prompt to enter parent mode
+      if (data.kids.length === 0) {
+        return /*#__PURE__*/React.createElement("div", {
+          className: "min-h-screen flex flex-col items-center justify-center p-4 text-center bg-background"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "text-6xl mb-4 anim-bounce"
+        }, "🥋"), /*#__PURE__*/React.createElement("h2", {
+          className: "text-2xl font-bold mb-2"
+        }, "Welcome to Dada Dojo!"), /*#__PURE__*/React.createElement("p", {
+          className: "text-muted-foreground mb-6 max-w-md"
+        }, "No kids have been added yet. Ask a parent to set up your account!"), /*#__PURE__*/React.createElement(Button, {
+          onClick: () => setParentGateOpen(true),
+          className: "bg-primary hover:bg-primary/90"
+        }, /*#__PURE__*/React.createElement(Icon, {
+          name: "user",
+          size: 18
+        }), " Parent Mode"), parentGateOpen && /*#__PURE__*/React.createElement(ParentGate, {
+          family: family,
+          onSuccess: () => {
+            setParentGateOpen(false);
+            onSwitchToParent();
+          },
+          onCancel: () => setParentGateOpen(false)
+        }));
+      }
+      return /*#__PURE__*/React.createElement("div", {
+        className: "min-h-screen flex bg-background"
+      }, /*#__PURE__*/React.createElement("aside", {
+        className: "hidden md:flex w-60 flex-col border-r border-border bg-card/50 p-4 shrink-0"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3 mb-8 px-2"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-3xl"
+      }, selectedKid?.avatarEmoji || '🥋'), /*#__PURE__*/React.createElement("h1", {
+        className: "text-xl font-bold gradient-text"
+      }, "Dada Dojo")), /*#__PURE__*/React.createElement("nav", {
+        className: "flex-1 space-y-1"
+      }, KIDS_TABS.map(item => /*#__PURE__*/React.createElement("button", {
+        key: item.id,
+        onClick: () => setTab(item.id),
+        className: cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium', tab === item.id ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50')
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: item.icon,
+        size: 20
+      }), item.label))), /*#__PURE__*/React.createElement("div", {
+        className: "border-t border-border pt-4 mt-4 space-y-1"
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: () => setParentGateOpen(true),
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary transition-all"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "logOut",
+        size: 16
+      }), " Parent Mode"), /*#__PURE__*/React.createElement("button", {
+        onClick: onSignOut,
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive transition-all"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "logOut",
+        size: 16
+      }), " Sign Out"))), /*#__PURE__*/React.createElement("div", {
+        className: "md:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-2"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-2xl"
+      }, selectedKid?.avatarEmoji || '🥋'), /*#__PURE__*/React.createElement("span", {
+        className: "font-bold text-lg gradient-text"
+      }, "Dada Dojo")), /*#__PURE__*/React.createElement("button", {
+        onClick: () => setMobileNav(!mobileNav),
+        className: "text-foreground p-1"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: mobileNav ? 'x' : 'menu',
+        size: 24
+      }))), mobileNav && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: "md:hidden fixed inset-0 bg-black/50 z-40 anim-fade",
+        onClick: () => setMobileNav(false)
+      }), /*#__PURE__*/React.createElement("aside", {
+        className: "md:hidden fixed top-0 left-0 bottom-0 w-64 z-50 bg-card border-r border-border p-4 anim-slide-left"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3 mb-6 px-2"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-2xl"
+      }, selectedKid?.avatarEmoji || '🥋'), /*#__PURE__*/React.createElement("span", {
+        className: "font-bold text-lg"
+      }, "Dada Dojo")), /*#__PURE__*/React.createElement("nav", {
+        className: "space-y-1"
+      }, KIDS_TABS.map(item => /*#__PURE__*/React.createElement("button", {
+        key: item.id,
+        onClick: () => {
+          setTab(item.id);
+          setMobileNav(false);
+        },
+        className: cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium', tab === item.id ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground')
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: item.icon,
+        size: 20
+      }), " ", item.label))), /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          setMobileNav(false);
+          setParentGateOpen(true);
+        },
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary mt-4"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "logOut",
+        size: 16
+      }), " Parent Mode"), /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          setMobileNav(false);
+          onSignOut();
+        },
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-2"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "logOut",
+        size: 16
+      }), " Sign Out"))), /*#__PURE__*/React.createElement("main", {
+        className: "flex-1 md:p-6 p-4 pt-16 md:pt-6 overflow-y-auto min-h-screen"
+      }, /*#__PURE__*/React.createElement(KidSelector, null), /*#__PURE__*/React.createElement("div", {
+        className: "mt-6"
+      }, tab === 'home' && selectedKid && /*#__PURE__*/React.createElement(HomeTab, null), tab === 'goals' && selectedKid && /*#__PURE__*/React.createElement(GoalsTab, null), tab === 'points' && selectedKid && /*#__PURE__*/React.createElement(PointsTab, null), tab === 'store' && selectedKid && /*#__PURE__*/React.createElement(StoreTab, null), tab === 'calendar' && selectedKid && /*#__PURE__*/React.createElement(CalendarTab, null), tab === 'theme' && selectedKid && /*#__PURE__*/React.createElement(ThemeTab, null))), parentGateOpen && /*#__PURE__*/React.createElement(ParentGate, {
+        family: family,
+        onSuccess: () => {
+          setParentGateOpen(false);
+          onSwitchToParent();
+        },
+        onCancel: () => setParentGateOpen(false)
+      }));
+    }
     function Home({
       family,
-      onSignOut
+      onSignOut,
+      onExitToKids
     }) {
       const {
         success,
@@ -812,6 +1725,11 @@
       useEffect(() => {
         saveData(data);
       }, [data]);
+
+      // Parent dashboard always uses the Galaxy theme
+      useEffect(() => {
+        applyTheme('galaxy');
+      }, []);
 
       // Initialize selected kid
       useEffect(() => {
@@ -1015,7 +1933,8 @@
           id: uid(),
           name,
           avatarEmoji: emoji || '🥋',
-          totalPoints: 0
+          totalPoints: 0,
+          theme: 'galaxy'
         };
         setData(d => ({
           ...d,
@@ -2253,6 +3172,12 @@
       }, /*#__PURE__*/React.createElement("div", {
         className: "text-sm text-muted-foreground truncate px-2"
       }, family.name), /*#__PURE__*/React.createElement("button", {
+        onClick: onExitToKids,
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition-all mt-2"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "home",
+        size: 16
+      }), " Kids View"), /*#__PURE__*/React.createElement("button", {
         onClick: onSignOut,
         className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive transition-all mt-2"
       }, /*#__PURE__*/React.createElement(Icon, {
@@ -2296,8 +3221,14 @@
         name: item.icon,
         size: 20
       }), " ", item.label))), /*#__PURE__*/React.createElement("button", {
+        onClick: onExitToKids,
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition-all mt-4"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "home",
+        size: 16
+      }), " Kids View"), /*#__PURE__*/React.createElement("button", {
         onClick: onSignOut,
-        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-6"
+        className: "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-2"
       }, /*#__PURE__*/React.createElement(Icon, {
         name: "logOut",
         size: 16
@@ -2331,9 +3262,26 @@
     function App() {
       const [family, setFamily] = useState(() => loadData().family);
       const [bootstrapped, setBootstrapped] = useState(false);
+      // 'kids' is the default mode after login. 'parent' requires the parent password.
+      const [mode, setMode] = useState('kids');
       useEffect(() => {
         setBootstrapped(true);
       }, []);
+
+      // Reset to kids mode on every fresh login
+      const handleAuthed = fam => {
+        setFamily(fam);
+        setMode('kids');
+      };
+      const handleSignOut = () => {
+        const data = loadData();
+        saveData({
+          ...data,
+          family: null
+        });
+        setFamily(null);
+        setMode('kids');
+      };
       if (!bootstrapped) {
         return /*#__PURE__*/React.createElement("div", {
           className: "min-h-screen flex items-center justify-center bg-background"
@@ -2341,18 +3289,16 @@
           className: "text-4xl anim-bounce"
         }, "🥋"));
       }
-      return /*#__PURE__*/React.createElement(ToastProvider, null, family ? /*#__PURE__*/React.createElement(Home, {
+      return /*#__PURE__*/React.createElement(ToastProvider, null, family ? mode === 'kids' ? /*#__PURE__*/React.createElement(KidsHome, {
         family: family,
-        onSignOut: () => {
-          const data = loadData();
-          saveData({
-            ...data,
-            family: null
-          });
-          setFamily(null);
-        }
+        onSwitchToParent: () => setMode('parent'),
+        onSignOut: handleSignOut
+      }) : /*#__PURE__*/React.createElement(Home, {
+        family: family,
+        onSignOut: handleSignOut,
+        onExitToKids: () => setMode('kids')
       }) : /*#__PURE__*/React.createElement(AuthForm, {
-        onAuthed: fam => setFamily(fam)
+        onAuthed: handleAuthed
       }));
     }
     const root = ReactDOM.createRoot(document.getElementById('root'));
