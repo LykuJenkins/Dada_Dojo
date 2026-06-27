@@ -554,6 +554,143 @@
         );
       }
 
+      // ════════════════════════════════════════════════════════════════
+      // KID-FRIENDLY THEME SCHEMES
+      // Each theme overrides the CSS variables on :root.
+      // ════════════════════════════════════════════════════════════════
+      const THEMES = {
+        galaxy: {
+          name: 'Galaxy',
+          emoji: '🌌',
+          vars: {
+            '--background': '#0f0a1a',
+            '--foreground': '#f0e6ff',
+            '--card': '#1a1029',
+            '--primary': '#a855f7',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#2d1f45',
+            '--secondary-foreground': '#f0e6ff',
+            '--muted': '#2d1f45',
+            '--muted-foreground': '#a78bfa',
+            '--accent': '#3b2760',
+            '--accent-foreground': '#f0e6ff',
+            '--border': '#3b2760',
+            '--input': '#3b2760',
+            '--ring': '#a855f7',
+          },
+        },
+        ocean: {
+          name: 'Ocean',
+          emoji: '🌊',
+          vars: {
+            '--background': '#0a1428',
+            '--foreground': '#e0f2fe',
+            '--card': '#0f1e3a',
+            '--primary': '#0ea5e9',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#1e3a5f',
+            '--secondary-foreground': '#e0f2fe',
+            '--muted': '#1e3a5f',
+            '--muted-foreground': '#7dd3fc',
+            '--accent': '#1e3a5f',
+            '--accent-foreground': '#e0f2fe',
+            '--border': '#1e3a5f',
+            '--input': '#1e3a5f',
+            '--ring': '#0ea5e9',
+          },
+        },
+        jungle: {
+          name: 'Jungle',
+          emoji: '🌿',
+          vars: {
+            '--background': '#0a1f0e',
+            '--foreground': '#dcfce7',
+            '--card': '#0f2916',
+            '--primary': '#22c55e',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#1a3a23',
+            '--secondary-foreground': '#dcfce7',
+            '--muted': '#1a3a23',
+            '--muted-foreground': '#86efac',
+            '--accent': '#1a3a23',
+            '--accent-foreground': '#dcfce7',
+            '--border': '#1a3a23',
+            '--input': '#1a3a23',
+            '--ring': '#22c55e',
+          },
+        },
+        sunset: {
+          name: 'Sunset',
+          emoji: '🌅',
+          vars: {
+            '--background': '#1a0f0a',
+            '--foreground': '#fff7ed',
+            '--card': '#2a1810',
+            '--primary': '#f97316',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#3a2418',
+            '--secondary-foreground': '#fff7ed',
+            '--muted': '#3a2418',
+            '--muted-foreground': '#fdba74',
+            '--accent': '#3a2418',
+            '--accent-foreground': '#fff7ed',
+            '--border': '#3a2418',
+            '--input': '#3a2418',
+            '--ring': '#f97316',
+          },
+        },
+        bubblegum: {
+          name: 'Bubblegum',
+          emoji: '🍬',
+          vars: {
+            '--background': '#1f0a18',
+            '--foreground': '#fce7f3',
+            '--card': '#2a1023',
+            '--primary': '#ec4899',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#3a1a2f',
+            '--secondary-foreground': '#fce7f3',
+            '--muted': '#3a1a2f',
+            '--muted-foreground': '#f9a8d4',
+            '--accent': '#3a1a2f',
+            '--accent-foreground': '#fce7f3',
+            '--border': '#3a1a2f',
+            '--input': '#3a1a2f',
+            '--ring': '#ec4899',
+          },
+        },
+        space: {
+          name: 'Space',
+          emoji: '🚀',
+          vars: {
+            '--background': '#0a0a1f',
+            '--foreground': '#e0e7ff',
+            '--card': '#101029',
+            '--primary': '#6366f1',
+            '--primary-foreground': '#ffffff',
+            '--secondary': '#1f1f4a',
+            '--secondary-foreground': '#e0e7ff',
+            '--muted': '#1f1f4a',
+            '--muted-foreground': '#a5b4fc',
+            '--accent': '#1f1f4a',
+            '--accent-foreground': '#e0e7ff',
+            '--border': '#1f1f4a',
+            '--input': '#1f1f4a',
+            '--ring': '#6366f1',
+          },
+        },
+      };
+
+      // Helper to apply a theme to the document root
+      function applyTheme(themeId) {
+        const theme = THEMES[themeId] || THEMES.galaxy;
+        const root = document.documentElement;
+        Object.entries(theme.vars).forEach(([k, v]) => {
+          root.style.setProperty(k, v);
+        });
+        document.body.style.background = theme.vars['--background'];
+      }
+
       // (Continued in next script block — same babel scope via window.__ddPart2)
       window.__ddBootstrap = function (components) {
         const {
@@ -591,7 +728,7 @@
                   error('Email does not match this device\'s family account.');
                 } else {
                   // First-time login on this device — create on the fly
-                  const fam = { name: name || email.split('@')[0] || 'Family', email, createdAt: new Date().toISOString() };
+                  const fam = { name: name || email.split('@')[0] || 'Family', email, password, createdAt: new Date().toISOString() };
                   const next = { ...data, family: fam };
                   saveData(next);
                   success('Welcome to Dada Dojo!');
@@ -603,7 +740,7 @@
                   setLoading(false);
                   return;
                 }
-                const fam = { name: name.trim(), email, createdAt: new Date().toISOString() };
+                const fam = { name: name.trim(), email, password, createdAt: new Date().toISOString() };
                 const next = { ...data, family: fam };
                 saveData(next);
                 success('Account created!');
@@ -711,7 +848,771 @@
           { id: 'settings', icon: 'settings', label: 'Settings' },
         ];
 
-        function Home({ family, onSignOut }) {
+        // ════════════════════════════════════════════════════════════════
+        // PARENT GATE — password prompt to enter parent mode
+        // ════════════════════════════════════════════════════════════════
+        function ParentGate({ family, onSuccess, onCancel }) {
+          const { error } = useToast();
+          const [pw, setPw] = useState('');
+          const [showPw, setShowPw] = useState(false);
+          return (
+            <Dialog open={true} onOpenChange={() => onCancel()}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Parent Access 🔒</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (pw === family.password) {
+                      onSuccess();
+                    } else {
+                      error('Wrong password!');
+                      setPw('');
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <Label>Enter Parent Password</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        type={showPw ? 'text' : 'password'}
+                        value={pw}
+                        onChange={e => setPw(e.target.value)}
+                        className="bg-secondary/50 pr-10"
+                        required
+                        autoFocus
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPw(!showPw)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <Icon name={showPw ? 'eyeOff' : 'eye'} size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => onCancel()}>Cancel</Button>
+                    <Button type="submit" className="bg-primary hover:bg-primary/90">Unlock</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          );
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // KIDS DASHBOARD — view-only for goals/points/calendar,
+        // interactive for store. Has theme picker in settings.
+        // ════════════════════════════════════════════════════════════════
+        const KIDS_TABS = [
+          { id: 'home', icon: 'home', label: 'Home' },
+          { id: 'goals', icon: 'target', label: 'My Goals' },
+          { id: 'points', icon: 'trophy', label: 'My Points' },
+          { id: 'store', icon: 'store', label: 'Store' },
+          { id: 'calendar', icon: 'calendar', label: 'Calendar' },
+          { id: 'theme', icon: 'settings', label: 'Theme' },
+        ];
+
+        function KidsHome({ family, onSwitchToParent, onSignOut }) {
+          const { success, info, error } = useToast();
+          const [data, setData] = useState(() => loadData());
+          const [tab, setTab] = useState('home');
+          const [mobileNav, setMobileNav] = useState(false);
+          const [selectedKidId, setSelectedKidId] = useState('');
+          const [calMonth, setCalMonth] = useState(new Date());
+          const [parentGateOpen, setParentGateOpen] = useState(false);
+
+          useEffect(() => { saveData(data); }, [data]);
+
+          // Initialize selected kid
+          useEffect(() => {
+            if (!selectedKidId && data.kids.length > 0) {
+              setSelectedKidId(data.kids[0].id);
+            }
+            if (selectedKidId && !data.kids.find(k => k.id === selectedKidId)) {
+              setSelectedKidId(data.kids[0]?.id || '');
+            }
+          }, [data.kids, selectedKidId]);
+
+          // Apply the selected kid's theme whenever it changes
+          useEffect(() => {
+            const kid = data.kids.find(k => k.id === selectedKidId);
+            applyTheme(kid?.theme || 'galaxy');
+          }, [selectedKidId, data.kids]);
+
+          const selectedKid = data.kids.find(k => k.id === selectedKidId) || null;
+          const todayChecks = (data.choreChecks[todayStr()] || {})[selectedKidId] || {};
+
+          // 7-day activity log for selected kid
+          const weekLogs = useMemo(() => {
+            const sevenAgo = new Date();
+            sevenAgo.setDate(sevenAgo.getDate() - 7);
+            return data.choreLogs
+              .filter(l => l.kidId === selectedKidId && new Date(l.date) >= sevenAgo)
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+          }, [data.choreLogs, selectedKidId]);
+
+          const weeklyPoints = () => {
+            const days = [];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (let i = 6; i >= 0; i--) {
+              const d = new Date(); d.setDate(d.getDate() - i);
+              const dayStr = d.toISOString().split('T')[0];
+              const dayPts = data.choreLogs
+                .filter(l => l.kidId === selectedKidId && l.date.startsWith(dayStr))
+                .reduce((sum, l) => sum + l.points, 0);
+              days.push({ day: dayNames[d.getDay()], pts: dayPts });
+            }
+            return days;
+          };
+          const weekData = weeklyPoints();
+          const weekTotal = weekData.reduce((s, d) => s + d.pts, 0);
+          const maxChart = Math.max(...weekData.map(d => d.pts), 1);
+
+          // ── Mutators (only store purchase + theme change) ───────
+          const purchaseItem = (storeItemId) => {
+            if (!selectedKidId) return;
+            const item = data.storeItems.find(i => i.id === storeItemId);
+            if (!item) return;
+            const kid = data.kids.find(k => k.id === selectedKidId);
+            if (!kid) return;
+            if (kid.totalPoints < item.pointCost) {
+              error('Not enough points!');
+              return;
+            }
+            const log = {
+              id: uid(),
+              kidId: selectedKidId,
+              choreId: null,
+              points: -item.pointCost,
+              date: new Date().toISOString(),
+              action: 'purchase',
+              reason: 'Bought: ' + item.name,
+            };
+            setData(d => ({
+              ...d,
+              kids: d.kids.map(k => k.id === selectedKidId
+                ? { ...k, totalPoints: k.totalPoints - item.pointCost }
+                : k),
+              choreLogs: [log, ...d.choreLogs],
+            }));
+            success('Purchase successful! 🎉');
+          };
+
+          const setKidTheme = (themeId) => {
+            setData(d => ({
+              ...d,
+              kids: d.kids.map(k => k.id === selectedKidId ? { ...k, theme: themeId } : k),
+            }));
+            success('Theme updated! ' + (THEMES[themeId]?.emoji || ''));
+          };
+
+          // ── Calendar helpers ───────────────────────────────────
+          const calYear = calMonth.getFullYear();
+          const calMon = calMonth.getMonth();
+          const calDaysInMonth = new Date(calYear, calMon + 1, 0).getDate();
+          const calFirstDay = new Date(calYear, calMon, 1).getDay();
+          const calEventsForMonth = data.calendarEvents.filter(ev => {
+            const d = new Date(ev.startDate);
+            return d.getMonth() === calMon && d.getFullYear() === calYear;
+          });
+          const calEventDates = new Set(calEventsForMonth.map(ev => new Date(ev.startDate).getDate()));
+          const todayDate = new Date();
+
+          // ═══════════════════════════════════════════════════════
+          // KID SELECTOR (simpler than parent — no points badge)
+          // ═══════════════════════════════════════════════════════
+          const KidSelector = () => (
+            <div className="flex gap-2 flex-wrap">
+              {data.kids.map(k => (
+                <button
+                  key={k.id}
+                  onClick={() => setSelectedKidId(k.id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-xl transition-all',
+                    k.id === selectedKidId
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                      : 'bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <span className="text-xl">{k.avatarEmoji}</span>
+                  <span className="font-medium">{k.name}</span>
+                </button>
+              ))}
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // HOME TAB
+          // ═══════════════════════════════════════════════════════
+          const HomeTab = () => {
+            const today = new Date();
+            const todayEv = data.calendarEvents.filter(e => {
+              const ed = new Date(e.startDate);
+              return ed.toDateString() === today.toDateString();
+            });
+            const goalsDone = Object.values(todayChecks).filter(Boolean).length;
+            return (
+              <div className="space-y-6">
+                <Card className="bg-gradient-to-br from-primary/30 to-card border-primary/30">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <span className="text-6xl">{selectedKid.avatarEmoji}</span>
+                      <h2 className="text-3xl font-bold">Hi, {selectedKid.name}!</h2>
+                      <div className="flex items-baseline gap-2 mt-2">
+                        <Icon name="star" size={32} className="text-yellow-400" />
+                        <span className="text-5xl font-bold">{selectedKid.totalPoints}</span>
+                        <span className="text-xl text-muted-foreground">points</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg">Today's Goals 🎯</CardTitle>
+                      <Badge className="bg-primary/20 text-primary">{goalsDone}/{data.chores.length}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {data.chores.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">No goals yet — ask a parent to add some!</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {data.chores.map(chore => {
+                          const done = !!todayChecks[chore.id];
+                          return (
+                            <div
+                              key={chore.id}
+                              className={cn(
+                                'flex items-center gap-3 p-3 rounded-lg transition-colors',
+                                done ? 'bg-green-600/15' : 'bg-secondary/30'
+                              )}
+                            >
+                              <span className="text-2xl">{chore.icon}</span>
+                              <span className={cn('flex-1 font-medium', done && 'line-through text-muted-foreground')}>
+                                {chore.name}
+                              </span>
+                              <Badge className={done ? 'bg-green-600/30 text-green-300' : 'bg-primary/20 text-primary'}>
+                                +{chore.points}
+                              </Badge>
+                              {done && <Icon name="check" size={20} className="text-green-400" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3"><CardTitle className="text-lg">Today's Events 📅</CardTitle></CardHeader>
+                  <CardContent>
+                    {todayEv.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">Nothing scheduled today!</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {todayEv.map(ev => (
+                          <div key={ev.id} className="p-3 rounded-lg bg-secondary/30">
+                            <p className="font-medium">{ev.name}</p>
+                            {ev.description && <p className="text-xs text-muted-foreground mt-0.5">{ev.description}</p>}
+                            {!ev.allDay && (
+                              <p className="text-xs text-primary mt-1">
+                                {new Date(ev.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {selectedKid.totalPoints > 0 && (
+                  <Card className="bg-gradient-to-br from-primary/20 to-card border-primary/30">
+                    <CardContent className="p-6 text-center">
+                      <p className="text-lg mb-3">
+                        You have <span className="font-bold text-primary">{selectedKid.totalPoints}</span> points to spend!
+                      </p>
+                      <Button onClick={() => setTab('store')} className="bg-primary hover:bg-primary/90">
+                        <Icon name="store" size={18} /> Visit Store
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // GOALS TAB (view-only)
+          // ═══════════════════════════════════════════════════════
+          const GoalsTab = () => (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold">My Goals</h2>
+                <p className="text-sm text-muted-foreground">All the goals you can earn points from!</p>
+              </div>
+              {data.chores.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Icon name="target" size={40} className="mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">No goals yet — ask a parent to add some!</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {data.chores.map(chore => {
+                    const done = !!todayChecks[chore.id];
+                    return (
+                      <Card key={chore.id} className={cn(done ? 'bg-green-600/10 border-green-500/30' : 'bg-card/80')}>
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <span className="text-3xl">{chore.icon}</span>
+                          <div className="flex-1">
+                            <p className="font-medium">{chore.name}</p>
+                            <p className="text-xs text-muted-foreground">+{chore.points} points</p>
+                          </div>
+                          {done ? (
+                            <Badge className="bg-green-600/30 text-green-300">
+                              <Icon name="check" size={12} /> Done
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">To do</Badge>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // POINTS TAB (view-only)
+          // ═══════════════════════════════════════════════════════
+          const PointsTab = () => (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="inline-flex items-baseline gap-2 mb-1">
+                  <Icon name="star" size={32} className="text-yellow-400" />
+                  <span className="text-6xl font-bold">{selectedKid.totalPoints}</span>
+                </div>
+                <p className="text-muted-foreground">Total Points</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Icon name="trendingUp" size={28} className="text-green-400 mb-1 mx-auto" />
+                    <span className="text-2xl font-bold">{weekTotal}</span>
+                    <p className="text-xs text-muted-foreground">This Week</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Icon name="award" size={28} className="text-yellow-400 mb-1 mx-auto" />
+                    <span className="text-2xl font-bold">{weekData.filter(d => d.pts > 0).length}</span>
+                    <p className="text-xs text-muted-foreground">Active Days</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Weekly Points</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-end gap-2 h-40">
+                    {weekData.map((d, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-xs font-medium text-primary">{d.pts > 0 ? d.pts : ''}</span>
+                        <div className="w-full bg-secondary/50 rounded-t-md relative" style={{ height: '100%' }}>
+                          <div
+                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary to-primary/60 rounded-t-md transition-all duration-500"
+                            style={{ height: `${maxChart > 0 ? (d.pts / maxChart) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{d.day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Recent Activity</CardTitle></CardHeader>
+                <CardContent>
+                  {weekLogs.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-4 text-center">No activity yet!</p>
+                  ) : (
+                    <ScrollArea className="max-h-96">
+                      <div className="space-y-2">
+                        {weekLogs.slice(0, 20).map(log => (
+                          <div key={log.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg">
+                                {log.choreId
+                                  ? (data.chores.find(c => c.id === log.choreId)?.icon || '✅')
+                                  : (log.action === 'purchase' ? '🛍️' : '⭐')}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">{log.reason || 'Activity'}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(log.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge className={log.points >= 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}>
+                              {log.points >= 0 ? '+' : ''}{log.points}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // STORE TAB (interactive — kids can buy)
+          // ═══════════════════════════════════════════════════════
+          const StoreTab = () => {
+            const activeItems = data.storeItems.filter(i => i.isActive);
+            return (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold">🎁 Store</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You have <span className="text-primary font-bold text-lg">{selectedKid.totalPoints}</span> points
+                  </p>
+                </div>
+
+                {activeItems.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Icon name="gift" size={40} className="mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No prizes available yet — ask a parent to add some!</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {activeItems.map(item => {
+                      const canAfford = selectedKid.totalPoints >= item.pointCost;
+                      return (
+                        <Card
+                          key={item.id}
+                          className={cn(
+                            'bg-card/80 transition-all',
+                            canAfford ? 'hover:border-primary/40 hover:scale-[1.02]' : 'opacity-60'
+                          )}
+                        >
+                          <CardContent className="p-4">
+                            <div className="text-center mb-3">
+                              <span className="text-5xl">{item.icon}</span>
+                            </div>
+                            <h3 className="font-medium text-center mb-1">{item.name}</h3>
+                            {item.description && <p className="text-xs text-muted-foreground text-center mb-3">{item.description}</p>}
+                            <div className="flex items-center justify-between mt-3">
+                              <Badge className="bg-primary/20 text-primary">
+                                <Icon name="star" size={12} />{item.pointCost}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                disabled={!canAfford}
+                                onClick={() => purchaseItem(item.id)}
+                                className={canAfford ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary text-muted-foreground'}
+                              >
+                                <Icon name="shoppingBag" size={14} />
+                                {canAfford ? 'Buy!' : 'Need more'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // CALENDAR TAB (view-only, same as parent)
+          // ═══════════════════════════════════════════════════════
+          const CalendarTab = () => {
+            const upcomingEvents = data.calendarEvents
+              .filter(e => new Date(e.startDate) >= new Date(new Date().toDateString()))
+              .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            return (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">Calendar 📅</h2>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <button onClick={() => setCalMonth(new Date(calYear, calMon - 1))} className="p-2 rounded-lg hover:bg-secondary">
+                        <Icon name="chevronLeft" size={20} />
+                      </button>
+                      <h3 className="text-lg font-bold">
+                        {calMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <button onClick={() => setCalMonth(new Date(calYear, calMon + 1))} className="p-2 rounded-lg hover:bg-secondary">
+                        <Icon name="chevronRight" size={20} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="text-xs text-muted-foreground py-2 font-medium">{d}</div>
+                      ))}
+                      {Array.from({ length: calFirstDay }).map((_, i) => (
+                        <div key={'empty-' + i} />
+                      ))}
+                      {Array.from({ length: calDaysInMonth }).map((_, i) => {
+                        const day = i + 1;
+                        const hasEvent = calEventDates.has(day);
+                        const isToday = day === todayDate.getDate() && calMon === todayDate.getMonth() && calYear === todayDate.getFullYear();
+                        return (
+                          <div
+                            key={day}
+                            className={cn(
+                              'relative py-2 rounded-lg text-sm transition-all',
+                              isToday ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-secondary'
+                            )}
+                          >
+                            {day}
+                            {hasEvent && (
+                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-pink-400" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3"><CardTitle className="text-base">Upcoming Events</CardTitle></CardHeader>
+                  <CardContent>
+                    {upcomingEvents.length === 0 ? (
+                      <p className="text-muted-foreground text-sm py-4 text-center">No upcoming events</p>
+                    ) : (
+                      <ScrollArea className="max-h-64">
+                        <div className="space-y-2">
+                          {upcomingEvents.map(event => (
+                            <div key={event.id} className="py-2 border-b border-border/50 last:border-0">
+                              <p className="text-sm font-medium">{event.name}</p>
+                              {event.description && <p className="text-xs text-muted-foreground">{event.description}</p>}
+                              <p className="text-xs text-primary mt-0.5">
+                                {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                {event.allDay ? ' (All Day)' : ` at ${new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // THEME TAB — kid-friendly theme picker
+          // ═══════════════════════════════════════════════════════
+          const ThemeTab = () => {
+            const currentTheme = selectedKid?.theme || 'galaxy';
+            return (
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-bold">Pick Your Theme! 🎨</h2>
+                  <p className="text-sm text-muted-foreground">Choose a color scheme for your dashboard.</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {Object.entries(THEMES).map(([id, theme]) => {
+                    const selected = currentTheme === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => setKidTheme(id)}
+                        className={cn(
+                          'p-4 rounded-xl border-2 transition-all text-left',
+                          selected ? 'border-primary shadow-lg shadow-primary/20 scale-[1.02]' : 'border-border hover:border-primary/50'
+                        )}
+                        style={{
+                          background: theme.vars['--card'],
+                          color: theme.vars['--foreground'],
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-3xl">{theme.emoji}</span>
+                          <span className="font-bold">{theme.name}</span>
+                          {selected && (
+                            <span className="ml-auto">
+                              <Icon name="check" size={20} style={{ color: theme.vars['--primary'] }} />
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <div className="w-7 h-7 rounded-full" style={{ background: theme.vars['--primary'] }} />
+                          <div className="w-7 h-7 rounded-full" style={{ background: theme.vars['--secondary'] }} />
+                          <div className="w-7 h-7 rounded-full border" style={{ background: theme.vars['--background'], borderColor: theme.vars['--border'] }} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // RENDER
+          // ═══════════════════════════════════════════════════════
+          // No-kids state — prompt to enter parent mode
+          if (data.kids.length === 0) {
+            return (
+              <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center bg-background">
+                <div className="text-6xl mb-4 anim-bounce">🥋</div>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Dada Dojo!</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  No kids have been added yet. Ask a parent to set up your account!
+                </p>
+                <Button onClick={() => setParentGateOpen(true)} className="bg-primary hover:bg-primary/90">
+                  <Icon name="user" size={18} /> Parent Mode
+                </Button>
+                {parentGateOpen && (
+                  <ParentGate
+                    family={family}
+                    onSuccess={() => { setParentGateOpen(false); onSwitchToParent(); }}
+                    onCancel={() => setParentGateOpen(false)}
+                  />
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen flex bg-background">
+              {/* Sidebar - Desktop */}
+              <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card/50 p-4 shrink-0">
+                <div className="flex items-center gap-3 mb-8 px-2">
+                  <span className="text-3xl">{selectedKid?.avatarEmoji || '🥋'}</span>
+                  <h1 className="text-xl font-bold gradient-text">Dada Dojo</h1>
+                </div>
+                <nav className="flex-1 space-y-1">
+                  {KIDS_TABS.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setTab(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium',
+                        tab === item.id
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                      )}
+                    >
+                      <Icon name={item.icon} size={20} />
+                      {item.label}
+                    </button>
+                  ))}
+                </nav>
+                <div className="border-t border-border pt-4 mt-4 space-y-1">
+                  <button
+                    onClick={() => setParentGateOpen(true)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary transition-all"
+                  >
+                    <Icon name="logOut" size={16} /> Parent Mode
+                  </button>
+                  <button
+                    onClick={onSignOut}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive transition-all"
+                  >
+                    <Icon name="logOut" size={16} /> Sign Out
+                  </button>
+                </div>
+              </aside>
+
+              {/* Mobile nav toggle */}
+              <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{selectedKid?.avatarEmoji || '🥋'}</span>
+                  <span className="font-bold text-lg gradient-text">Dada Dojo</span>
+                </div>
+                <button onClick={() => setMobileNav(!mobileNav)} className="text-foreground p-1">
+                  <Icon name={mobileNav ? 'x' : 'menu'} size={24} />
+                </button>
+              </div>
+
+              {/* Mobile drawer */}
+              {mobileNav && (
+                <>
+                  <div className="md:hidden fixed inset-0 bg-black/50 z-40 anim-fade" onClick={() => setMobileNav(false)} />
+                  <aside className="md:hidden fixed top-0 left-0 bottom-0 w-64 z-50 bg-card border-r border-border p-4 anim-slide-left">
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                      <span className="text-2xl">{selectedKid?.avatarEmoji || '🥋'}</span>
+                      <span className="font-bold text-lg">Dada Dojo</span>
+                    </div>
+                    <nav className="space-y-1">
+                      {KIDS_TABS.map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => { setTab(item.id); setMobileNav(false); }}
+                          className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium',
+                            tab === item.id ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+                          )}
+                        >
+                          <Icon name={item.icon} size={20} /> {item.label}
+                        </button>
+                      ))}
+                    </nav>
+                    <button
+                      onClick={() => { setMobileNav(false); setParentGateOpen(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary mt-4"
+                    >
+                      <Icon name="logOut" size={16} /> Parent Mode
+                    </button>
+                    <button
+                      onClick={() => { setMobileNav(false); onSignOut(); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-2"
+                    >
+                      <Icon name="logOut" size={16} /> Sign Out
+                    </button>
+                  </aside>
+                </>
+              )}
+
+              <main className="flex-1 md:p-6 p-4 pt-16 md:pt-6 overflow-y-auto min-h-screen">
+                <KidSelector />
+                <div className="mt-6">
+                  {tab === 'home' && selectedKid && <HomeTab />}
+                  {tab === 'goals' && selectedKid && <GoalsTab />}
+                  {tab === 'points' && selectedKid && <PointsTab />}
+                  {tab === 'store' && selectedKid && <StoreTab />}
+                  {tab === 'calendar' && selectedKid && <CalendarTab />}
+                  {tab === 'theme' && selectedKid && <ThemeTab />}
+                </div>
+              </main>
+
+              {parentGateOpen && (
+                <ParentGate
+                  family={family}
+                  onSuccess={() => { setParentGateOpen(false); onSwitchToParent(); }}
+                  onCancel={() => setParentGateOpen(false)}
+                />
+              )}
+            </div>
+          );
+        }
+
+        function Home({ family, onSignOut, onExitToKids }) {
           const { success, info, error } = useToast();
           const [data, setData] = useState(() => loadData());
           const [tab, setTab] = useState('dashboard');
@@ -724,6 +1625,9 @@
 
           // Persist data whenever it changes
           useEffect(() => { saveData(data); }, [data]);
+
+          // Parent dashboard always uses the Galaxy theme
+          useEffect(() => { applyTheme('galaxy'); }, []);
 
           // Initialize selected kid
           useEffect(() => {
@@ -911,7 +1815,7 @@
 
           // ── Kid actions ─────────────────────────────────────────
           const addKid = (name, emoji) => {
-            const kid = { id: uid(), name, avatarEmoji: emoji || '🥋', totalPoints: 0 };
+            const kid = { id: uid(), name, avatarEmoji: emoji || '🥋', totalPoints: 0, theme: 'galaxy' };
             setData(d => ({ ...d, kids: [...d.kids, kid] }));
             setSelectedKidId(kid.id);
             success(name + ' added!');
@@ -2028,6 +2932,12 @@
                 <div className="border-t border-border pt-4 mt-4">
                   <div className="text-sm text-muted-foreground truncate px-2">{family.name}</div>
                   <button
+                    onClick={onExitToKids}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition-all mt-2"
+                  >
+                    <Icon name="home" size={16} /> Kids View
+                  </button>
+                  <button
                     onClick={onSignOut}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive transition-all mt-2"
                   >
@@ -2069,8 +2979,14 @@
                       ))}
                     </nav>
                     <button
+                      onClick={onExitToKids}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition-all mt-4"
+                    >
+                      <Icon name="home" size={16} /> Kids View
+                    </button>
+                    <button
                       onClick={onSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-6"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-2"
                     >
                       <Icon name="logOut" size={16} /> Sign Out
                     </button>
@@ -2117,8 +3033,23 @@
         function App() {
           const [family, setFamily] = useState(() => loadData().family);
           const [bootstrapped, setBootstrapped] = useState(false);
+          // 'kids' is the default mode after login. 'parent' requires the parent password.
+          const [mode, setMode] = useState('kids');
 
           useEffect(() => { setBootstrapped(true); }, []);
+
+          // Reset to kids mode on every fresh login
+          const handleAuthed = (fam) => {
+            setFamily(fam);
+            setMode('kids');
+          };
+
+          const handleSignOut = () => {
+            const data = loadData();
+            saveData({ ...data, family: null });
+            setFamily(null);
+            setMode('kids');
+          };
 
           if (!bootstrapped) {
             return (
@@ -2131,12 +3062,19 @@
           return (
             <ToastProvider>
               {family
-                ? <Home family={family} onSignOut={() => {
-                    const data = loadData();
-                    saveData({ ...data, family: null });
-                    setFamily(null);
-                  }} />
-                : <AuthForm onAuthed={fam => setFamily(fam)} />
+                ? (mode === 'kids'
+                    ? <KidsHome
+                        family={family}
+                        onSwitchToParent={() => setMode('parent')}
+                        onSignOut={handleSignOut}
+                      />
+                    : <Home
+                        family={family}
+                        onSignOut={handleSignOut}
+                        onExitToKids={() => setMode('kids')}
+                      />
+                  )
+                : <AuthForm onAuthed={handleAuthed} />
               }
             </ToastProvider>
           );
