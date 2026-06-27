@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0a1a" />
+  <meta name="description" content="Dada Dojo - Daily Goal Tracker for Kids. Track chores, earn points, redeem rewards." />
+  <title>Dada Dojo</title>
+
+  <!-- Tailwind via Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            card: 'var(--card)',
+            'card-foreground': 'var(--card-foreground)',
+            popover: 'var(--popover)',
+            'popover-foreground': 'var(--popover-foreground)',
+            primary: 'var(--primary)',
+            'primary-foreground': 'var(--primary-foreground)',
+            secondary: 'var(--secondary)',
+            'secondary-foreground': 'var(--secondary-foreground)',
+            muted: 'var(--muted)',
+            'muted-foreground': 'var(--muted-foreground)',
+            accent: 'var(--accent)',
+            'accent-foreground': 'var(--accent-foreground)',
+            destructive: 'var(--destructive)',
+            border: 'var(--border)',
+            input: 'var(--input)',
+            ring: 'var(--ring)',
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --radius: 0.75rem;
+      --background: #0f0a1a;
+      --foreground: #f0e6ff;
+      --card: #1a1029;
+      --card-foreground: #f0e6ff;
+      --popover: #1a1029;
+      --popover-foreground: #f0e6ff;
+      --primary: #a855f7;
+      --primary-foreground: #ffffff;
+      --secondary: #2d1f45;
+      --secondary-foreground: #f0e6ff;
+      --muted: #2d1f45;
+      --muted-foreground: #a78bfa;
+      --accent: #3b2760;
+      --accent-foreground: #f0e6ff;
+      --destructive: #ef4444;
+      --border: #3b2760;
+      --input: #3b2760;
+      --ring: #a855f7;
+    }
+
+    html, body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    * { border-color: var(--border); }
+
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1029; }
+    ::-webkit-scrollbar-thumb { background: #3b2760; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+    /* Animations */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(80px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .anim-fade { animation: fadeIn 0.2s ease-out; }
+    .anim-scale { animation: scaleIn 0.2s ease-out; }
+    .anim-slide-left { animation: slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .anim-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .anim-toast { animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .anim-bounce { animation: bounce 1s infinite; }
+
+    .gradient-text {
+      background: linear-gradient(to right, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Hide native checkbox appearance for our custom Checkbox */
+    .dd-checkbox {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .dd-checkbox:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .dd-checkbox:checked::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    /* Native select styling for dark theme */
+    select.dd-input {
+      background-color: var(--secondary);
+      color: var(--foreground);
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1rem;
+      padding-right: 2rem;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    /* Date input dark styling */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) sepia(1) saturate(3) hue-rotate(230deg);
+      cursor: pointer;
+    }
+
+    /* No focus outline but accessible ring */
+    button:focus-visible, input:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React 18 + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    (function () {
+      'use strict';
+
+      const { useState, useEffect, useCallback, useMemo, useRef } = React;
+      const h = React.createElement;
+      const e = React.createElement;
+
+      // ════════════════════════════════════════════════════════════════
+      // ICONS — Inline SVG paths (Lucide-derived, MIT)
+      // ════════════════════════════════════════════════════════════════
+      const ICON_PATHS = {
+        home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+        target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+        trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+        store: '<m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 2v20h16V2"/><path d="M15 22V17a3 3 0 0 0-3-3h-2a3 3 0 0 0-3 3v5"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+        calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/>',
+        listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/>',
+        logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+        plus: '<path d="M5 12h14M12 5v14"/>',
+        minus: '<path d="M5 12h14"/>',
+        star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+        trash2: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+        edit3: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+        x: '<path d="M18 6 6 18M6 6l12 12"/>',
+        check: '<polyline points="20 6 9 17 4 12"/>',
+        gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+        chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+        chevronRight: '<path d="m9 18 6-6-6-6"/>',
+        trendingUp: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+        menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+        user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>',
+        eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+        eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
+        award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+        zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+        shoppingBag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+        download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+      };
+
+      function Icon({ name, size = 20, className = '', style = {} }) {
+        const path = ICON_PATHS[name];
+        if (!path) return null;
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+            style={style}
+            dangerouslySetInnerHTML={{ __html: path }}
+          />
+        );
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // UTILITIES
+      // ════════════════════════════════════════════════════════════════
+      const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9));
+
+      const todayStr = () => new Date().toISOString().split('T')[0];
+
+      const cn = (...parts) => parts.filter(Boolean).join(' ');
+
+      // ════════════════════════════════════════════════════════════════
+      // STORAGE / DATA LAYER
+      // ════════════════════════════════════════════════════════════════
+      const STORAGE_KEY = 'dadaDojoData_v1';
+
+      const DEFAULT_DATA = {
+        family: null,            // { name, email, createdAt }
+        kids: [],
+        chores: [],
+        choreLogs: [],           // { id, kidId, choreId, points, date, action: 'check'|'uncheck'|'manual', reason }
+        storeItems: [],
+        listItems: [],
+        calendarEvents: [],
+        choreChecks: {},         // { 'YYYY-MM-DD': { kidId: { choreId: true } } }
+      };
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return { ...DEFAULT_DATA };
+          const parsed = JSON.parse(raw);
+          return { ...DEFAULT_DATA, ...parsed };
+        } catch (err) {
+          console.error('Failed to load data:', err);
+          return { ...DEFAULT_DATA };
+        }
+      }
+
+      function saveData(data) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (err) {
+          console.error('Failed to save data:', err);
+        }
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // TOAST SYSTEM (replaces sonner)
+      // ════════════════════════════════════════════════════════════════
+      const ToastCtx = React.createContext({ toast: () => {} });
+
+      function ToastProvider({ children }) {
+        const [toasts, setToasts] = useState([]);
+        const toast = useCallback((message, type = 'info') => {
+          const id = uid();
+          setToasts(t => [...t, { id, message, type }]);
+          setTimeout(() => {
+            setToasts(t => t.filter(x => x.id !== id));
+          }, 3000);
+        }, []);
+
+        const api = useMemo(() => ({
+          toast,
+          success: (m) => toast(m, 'success'),
+          error: (m) => toast(m, 'error'),
+          info: (m) => toast(m, 'info'),
+        }), [toast]);
+
+        const colors = {
+          success: 'border-green-500/40 bg-green-950/80 text-green-200',
+          error: 'border-red-500/40 bg-red-950/80 text-red-200',
+          info: 'border-primary/40 bg-card/95 text-foreground',
+        };
+
+        return (
+          <ToastCtx.Provider value={api}>
+            {children}
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none">
+              {toasts.map(t => (
+                <div
+                  key={t.id}
+                  className={cn(
+                    'anim-toast pointer-events-auto px-4 py-2.5 rounded-xl border backdrop-blur-md shadow-lg text-sm font-medium min-w-[200px] max-w-[400px] text-center',
+                    colors[t.type] || colors.info
+                  )}
+                >
+                  {t.message}
+                </div>
+              ))}
+            </div>
+          </ToastCtx.Provider>
+        );
+      }
+
+      const useToast = () => React.useContext(ToastCtx);
+
+      // ════════════════════════════════════════════════════════════════
+      // UI PRIMITIVES (shadcn-inspired, vanilla React)
+      // ════════════════════════════════════════════════════════════════
+      function Button({ variant = 'default', size = 'default', className = '', children, ...props }) {
+        const variants = {
+          default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20',
+          outline: 'border border-border bg-transparent hover:bg-secondary/50 text-foreground',
+          ghost: 'hover:bg-secondary/50 text-foreground',
+          secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          destructive: 'bg-destructive text-white hover:bg-destructive/90',
+          link: 'text-primary underline-offset-4 hover:underline',
+        };
+        const sizes = {
+          default: 'h-10 px-4 py-2 text-sm',
+          sm: 'h-9 px-3 text-sm',
+          lg: 'h-11 px-6 text-base',
+          icon: 'h-10 w-10',
+        };
+        return (
+          <button
+            className={cn(
+              'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap',
+              variants[variant],
+              sizes[size],
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </button>
+        );
+      }
+
+      function Card({ className = '', children, ...props }) {
+        return (
+          <div
+            className={cn('rounded-xl border border-border bg-card text-card-foreground shadow-sm', className)}
+            {...props}
+          >
+            {children}
+          </div>
+        );
+      }
+      function CardHeader({ className = '', children }) {
+        return <div className={cn('p-6 pb-3', className)}>{children}</div>;
+      }
+      function CardTitle({ className = '', children }) {
+        return <h3 className={cn('font-semibold leading-none tracking-tight', className)}>{children}</h3>;
+      }
+      function CardContent({ className = '', children }) {
+        return <div className={cn('p-6 pt-0', className)}>{children}</div>;
+      }
+
+      function Input({ className = '', ...props }) {
+        return (
+          <input
+            className={cn(
+              'dd-input flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors',
+              className
+            )}
+            {...props}
+          />
+        );
+      }
+
+      function Label({ className = '', children, ...props }) {
+        return (
+          <label
+            className={cn('text-sm font-medium leading-none text-foreground/90', className)}
+            {...props}
+          >
+            {children}
+          </label>
+        );
+      }
+
+      function Badge({ variant = 'default', className = '', children }) {
+        const variants = {
+          default: 'bg-primary/20 text-primary border-transparent',
+          secondary: 'bg-secondary text-secondary-foreground border-transparent',
+          outline: 'border border-border text-foreground',
+          destructive: 'bg-destructive/20 text-red-300 border-transparent',
+        };
+        return (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+              variants[variant],
+              className
+            )}
+          >
+            {children}
+          </span>
+        );
+      }
+
+      function Progress({ value = 0, className = '' }) {
+        return (
+          <div className={cn('relative h-2 w-full overflow-hidden rounded-full bg-secondary/70', className)}>
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+              style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+            />
+          </div>
+        );
+      }
+
+      function Switch({ checked, onCheckedChange, disabled = false }) {
+        return (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            disabled={disabled}
+            onClick={() => !disabled && onCheckedChange && onCheckedChange(!checked)}
+            className={cn(
+              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+              checked ? 'bg-primary' : 'bg-secondary border border-border'
+            )}
+          >
+            <span
+              className={cn(
+                'inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform',
+                checked ? 'translate-x-5' : 'translate-x-0.5'
+              )}
+            />
+          </button>
+        );
+      }
+
+      function Checkbox({ checked, onCheckedChange, className = '' }) {
+        return (
+          <input
+            type="checkbox"
+            className={cn('dd-checkbox', className)}
+            checked={!!checked}
+            onChange={e => onCheckedChange && onCheckedChange(e.target.checked)}
+          />
+        );
+      }
+
+      function Separator({ className = '' }) {
+        return <div className={cn('h-px w-full bg-border', className)} />;
+      }
+
+      function ScrollArea({ className = '', children }) {
+        return (
+          <div className={cn('overflow-y-auto', className)}>
+            {children}
+          </div>
+        );
+      }
+
+      function Dialog({ open, onOpenChange, children }) {
+        useEffect(() => {
+          if (!open) return;
+          const onKey = (e) => { if (e.key === 'Escape') onOpenChange && onOpenChange(false); };
+          window.addEventListener('keydown', onKey);
+          document.body.style.overflow = 'hidden';
+          return () => {
+            window.removeEventListener('keydown', onKey);
+            document.body.style.overflow = '';
+          };
+        }, [open, onOpenChange]);
+
+        if (!open) return null;
+        return (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm anim-fade"
+              onClick={() => onOpenChange && onOpenChange(false)}
+            />
+            <div className="relative z-10 w-full max-w-md anim-scale">
+              {children}
+            </div>
+          </div>
+        );
+      }
+      function DialogContent({ className = '', children }) {
+        return (
+          <div className={cn('rounded-xl border border-border bg-card shadow-2xl shadow-black/50 p-6', className)}>
+            {children}
+          </div>
+        );
+      }
+      function DialogHeader({ children }) {
+        return <div className="mb-4">{children}</div>;
+      }
+      function DialogTitle({ children }) {
+        return <h2 className="text-lg font-semibold text-foreground">{children}</h2>;
+      }
+      function DialogFooter({ children }) {
+        return <div className="mt-4 flex justify-end gap-2">{children}</div>;
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // GAUGE CHART
+      // ════════════════════════════════════════════════════════════════
+      function GaugeChart({ value, max, label }) {
+        const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+        return (
+          <div className="flex flex-col items-center">
+            <div className="relative w-40 h-20 overflow-hidden">
+              <div className="absolute inset-0 rounded-t-full bg-secondary/50" />
+              <div
+                className="absolute bottom-0 left-0 right-0 rounded-t-full bg-gradient-to-r from-green-400 to-purple-500 transition-all duration-700"
+                style={{ height: `${pct}%` }}
+              />
+              <div className="absolute inset-0 flex items-end justify-center pb-1">
+                <span className="text-2xl font-bold">{value}</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 text-center">{label}</p>
+          </div>
+        );
+      }
+
+      // (Continued in next script block — same babel scope via window.__ddPart2)
+      window.__ddBootstrap = function (components) {
+        const {
+          Icon, Button, Card, CardHeader, CardTitle, CardContent,
+          Input, Label, Badge, Progress, Switch, Checkbox, Separator,
+          ScrollArea, Dialog, DialogContent, DialogHeader, DialogTitle,
+          DialogFooter, GaugeChart, ToastProvider, useToast,
+          uid, todayStr, cn, loadData, saveData, DEFAULT_DATA
+        } = components;
+
+        // ════════════════════════════════════════════════════════════════
+        // AUTH SCREEN (replaces NextAuth — local-only "family" login)
+        // ════════════════════════════════════════════════════════════════
+        function AuthForm({ onAuthed }) {
+          const [isLogin, setIsLogin] = useState(true);
+          const [email, setEmail] = useState('');
+          const [password, setPassword] = useState('');
+          const [name, setName] = useState('');
+          const [showPw, setShowPw] = useState(false);
+          const [loading, setLoading] = useState(false);
+          const { error, success } = useToast();
+
+          const handleSubmit = (ev) => {
+            ev.preventDefault();
+            if (!email || !password) return;
+            setLoading(true);
+            setTimeout(() => {
+              const data = loadData();
+              const existing = data.family;
+              if (isLogin) {
+                if (existing && existing.email === email) {
+                  success('Welcome back!');
+                  onAuthed(existing);
+                } else if (existing) {
+                  error('Email does not match this device\'s family account.');
+                } else {
+                  // First-time login on this device — create on the fly
+                  const fam = { name: name || email.split('@')[0] || 'Family', email, createdAt: new Date().toISOString() };
+                  const next = { ...data, family: fam };
+                  saveData(next);
+                  success('Welcome to Dada Dojo!');
+                  onAuthed(fam);
+                }
+              } else {
+                if (!name.trim()) {
+                  error('Please enter your family name.');
+                  setLoading(false);
+                  return;
+                }
+                const fam = { name: name.trim(), email, createdAt: new Date().toISOString() };
+                const next = { ...data, family: fam };
+                saveData(next);
+                success('Account created!');
+                onAuthed(fam);
+              }
+              setLoading(false);
+            }, 400);
+          };
+
+          return (
+            <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #0f0a1a, #1a1029, #2d1f45)' }}>
+              <div className="w-full max-w-md anim-scale">
+                <div className="text-center mb-8">
+                  <div className="text-6xl mb-3">🥋</div>
+                  <h1 className="text-4xl font-bold gradient-text">Dada Dojo</h1>
+                  <p className="text-muted-foreground mt-2">Daily Goal Tracker for Kids</p>
+                </div>
+                <Card className="bg-card/80 backdrop-blur-sm border-border">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl text-center">
+                      {isLogin ? 'Welcome Back' : 'Create Account'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {!isLogin && (
+                        <div>
+                          <Label htmlFor="name">Family Name</Label>
+                          <Input
+                            id="name"
+                            placeholder="The Smith Family"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            className="bg-secondary/50 mt-1"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          className="bg-secondary/50 mt-1"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="password">Password</Label>
+                        <div className="relative mt-1">
+                          <Input
+                            id="password"
+                            type={showPw ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            className="bg-secondary/50 pr-10"
+                            required
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPw(!showPw)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            <Icon name={showPw ? 'eyeOff' : 'eye'} size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+                        {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+                      </Button>
+                    </form>
+                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                      {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                      <button
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="ml-1 text-primary hover:underline font-medium"
+                      >
+                        {isLogin ? 'Sign Up' : 'Sign In'}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground/70 text-center mt-4 leading-relaxed">
+                      Data is stored locally in your browser. No server required.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          );
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // MAIN APP
+        // ════════════════════════════════════════════════════════════════
+        const TABS = [
+          { id: 'dashboard', icon: 'home', label: 'Dashboard' },
+          { id: 'goals', icon: 'target', label: 'Daily Goals' },
+          { id: 'points', icon: 'trophy', label: 'Points' },
+          { id: 'store', icon: 'store', label: 'Store' },
+          { id: 'calendar', icon: 'calendar', label: 'Calendar' },
+          { id: 'lists', icon: 'listChecks', label: 'Lists' },
+          { id: 'settings', icon: 'settings', label: 'Settings' },
+        ];
+
+        function Home({ family, onSignOut }) {
+          const { success, info, error } = useToast();
+          const [data, setData] = useState(() => loadData());
+          const [tab, setTab] = useState('dashboard');
+          const [mobileNav, setMobileNav] = useState(false);
+          const [selectedKidId, setSelectedKidId] = useState('');
+          const [calMonth, setCalMonth] = useState(new Date());
+          const [dlg, setDlg] = useState({ open: false, type: '', data: null });
+          const [installPrompt, setInstallPrompt] = useState(null);
+          const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+          // Persist data whenever it changes
+          useEffect(() => { saveData(data); }, [data]);
+
+          // Initialize selected kid
+          useEffect(() => {
+            if (!selectedKidId && data.kids.length > 0) {
+              setSelectedKidId(data.kids[0].id);
+            }
+            if (selectedKidId && !data.kids.find(k => k.id === selectedKidId)) {
+              setSelectedKidId(data.kids[0]?.id || '');
+            }
+          }, [data.kids, selectedKidId]);
+
+          // PWA install prompt
+          useEffect(() => {
+            const handler = (e) => {
+              e.preventDefault();
+              setInstallPrompt(e);
+              setShowInstallBanner(true);
+            };
+            window.addEventListener('beforeinstallprompt', handler);
+            return () => window.removeEventListener('beforeinstallprompt', handler);
+          }, []);
+
+          const handleInstall = async () => {
+            if (!installPrompt) return;
+            installPrompt.prompt();
+            try {
+              const { outcome } = await installPrompt.userChoice;
+              if (outcome === 'accepted') success('Dada Dojo installed!');
+            } catch {}
+            setInstallPrompt(null);
+            setShowInstallBanner(false);
+          };
+
+          // ── Derived data ────────────────────────────────────────
+          const selectedKid = data.kids.find(k => k.id === selectedKidId) || null;
+
+          const todayChecks = (data.choreChecks[todayStr()] || {})[selectedKidId] || {};
+
+          // Today's activity log for selected kid
+          const todayLogs = useMemo(() => {
+            const t = todayStr();
+            return data.choreLogs.filter(l => l.kidId === selectedKidId && l.date.startsWith(t));
+          }, [data.choreLogs, selectedKidId]);
+
+          // 7-day activity log for selected kid
+          const weekLogs = useMemo(() => {
+            const sevenAgo = new Date();
+            sevenAgo.setDate(sevenAgo.getDate() - 7);
+            return data.choreLogs
+              .filter(l => l.kidId === selectedKidId && new Date(l.date) >= sevenAgo)
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+          }, [data.choreLogs, selectedKidId]);
+
+          const weeklyPoints = () => {
+            const days = [];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (let i = 6; i >= 0; i--) {
+              const d = new Date(); d.setDate(d.getDate() - i);
+              const dayStr = d.toISOString().split('T')[0];
+              const dayPts = data.choreLogs
+                .filter(l => l.kidId === selectedKidId && l.date.startsWith(dayStr))
+                .reduce((sum, l) => sum + l.points, 0);
+              days.push({ day: dayNames[d.getDay()], pts: dayPts });
+            }
+            return days;
+          };
+          const weekData = weeklyPoints();
+          const weekTotal = weekData.reduce((s, d) => s + d.pts, 0);
+          const maxChart = Math.max(...weekData.map(d => d.pts), 1);
+
+          // ── Mutators ────────────────────────────────────────────
+          const updateKid = (kidId, patch) => {
+            setData(d => ({
+              ...d,
+              kids: d.kids.map(k => k.id === kidId ? { ...k, ...patch } : k),
+            }));
+          };
+
+          const adjustPoints = (amount, reason) => {
+            if (!selectedKidId) return;
+            const kid = data.kids.find(k => k.id === selectedKidId);
+            if (!kid) return;
+            const log = {
+              id: uid(),
+              kidId: selectedKidId,
+              choreId: null,
+              points: amount,
+              date: new Date().toISOString(),
+              action: 'manual',
+              reason: reason || 'Manual adjustment',
+            };
+            setData(d => ({
+              ...d,
+              kids: d.kids.map(k => k.id === selectedKidId
+                ? { ...k, totalPoints: k.totalPoints + amount }
+                : k),
+              choreLogs: [log, ...d.choreLogs],
+            }));
+            success(`${amount > 0 ? '+' : ''}${amount} points`);
+          };
+
+          const toggleChore = (choreId, checked) => {
+            if (!selectedKidId) return;
+            const chore = data.chores.find(c => c.id === choreId);
+            if (!chore) return;
+            const kid = data.kids.find(k => k.id === selectedKidId);
+            if (!kid) return;
+            const today = todayStr();
+            const todayMap = { ...(data.choreChecks[today] || {}) };
+            const kidMap = { ...(todayMap[selectedKidId] || {}) };
+
+            if (checked) {
+              kidMap[choreId] = true;
+              todayMap[selectedKidId] = kidMap;
+              const log = {
+                id: uid(),
+                kidId: selectedKidId,
+                choreId,
+                points: chore.points,
+                date: new Date().toISOString(),
+                action: 'check',
+                reason: chore.name,
+              };
+              setData(d => ({
+                ...d,
+                kids: d.kids.map(k => k.id === selectedKidId
+                  ? { ...k, totalPoints: k.totalPoints + chore.points }
+                  : k),
+                choreChecks: { ...d.choreChecks, [today]: todayMap },
+                choreLogs: [log, ...d.choreLogs],
+              }));
+              success('Goal completed! +' + chore.points + ' points');
+            } else {
+              delete kidMap[choreId];
+              todayMap[selectedKidId] = kidMap;
+              const log = {
+                id: uid(),
+                kidId: selectedKidId,
+                choreId,
+                points: -chore.points,
+                date: new Date().toISOString(),
+                action: 'uncheck',
+                reason: 'Unchecked: ' + chore.name,
+              };
+              setData(d => ({
+                ...d,
+                kids: d.kids.map(k => k.id === selectedKidId
+                  ? { ...k, totalPoints: k.totalPoints - chore.points }
+                  : k),
+                choreChecks: { ...d.choreChecks, [today]: todayMap },
+                choreLogs: [log, ...d.choreLogs],
+              }));
+              info('Goal unchecked');
+            }
+          };
+
+          const purchaseItem = (storeItemId) => {
+            if (!selectedKidId) return;
+            const item = data.storeItems.find(i => i.id === storeItemId);
+            if (!item) return;
+            const kid = data.kids.find(k => k.id === selectedKidId);
+            if (!kid) return;
+            if (kid.totalPoints < item.pointCost) {
+              error('Not enough points!');
+              return;
+            }
+            const log = {
+              id: uid(),
+              kidId: selectedKidId,
+              choreId: null,
+              points: -item.pointCost,
+              date: new Date().toISOString(),
+              action: 'purchase',
+              reason: 'Bought: ' + item.name,
+            };
+            setData(d => ({
+              ...d,
+              kids: d.kids.map(k => k.id === selectedKidId
+                ? { ...k, totalPoints: k.totalPoints - item.pointCost }
+                : k),
+              choreLogs: [log, ...d.choreLogs],
+            }));
+            success('Purchase successful!');
+          };
+
+          // ── Kid actions ─────────────────────────────────────────
+          const addKid = (name, emoji) => {
+            const kid = { id: uid(), name, avatarEmoji: emoji || '🥋', totalPoints: 0 };
+            setData(d => ({ ...d, kids: [...d.kids, kid] }));
+            setSelectedKidId(kid.id);
+            success(name + ' added!');
+          };
+          const deleteKid = (kidId) => {
+            setData(d => ({
+              ...d,
+              kids: d.kids.filter(k => k.id !== kidId),
+              choreLogs: d.choreLogs.filter(l => l.kidId !== kidId),
+            }));
+            success('Kid removed');
+          };
+
+          // ── Chore actions ──────────────────────────────────────
+          const addChore = (name, icon, points) => {
+            const chore = { id: uid(), name, icon: icon || '✅', points: parseInt(points) || 1, sortOrder: data.chores.length };
+            setData(d => ({ ...d, chores: [...d.chores, chore] }));
+            success('Goal added!');
+          };
+          const updateChore = (id, patch) => {
+            setData(d => ({ ...d, chores: d.chores.map(c => c.id === id ? { ...c, ...patch } : c) }));
+            success('Goal updated');
+          };
+          const deleteChore = (id) => {
+            setData(d => ({ ...d, chores: d.chores.filter(c => c.id !== id) }));
+            success('Goal removed');
+          };
+
+          // ── Store actions ──────────────────────────────────────
+          const addStoreItem = (name, desc, cost, icon) => {
+            const item = { id: uid(), name, description: desc, pointCost: parseInt(cost) || 10, icon: icon || '🎁', isActive: true };
+            setData(d => ({ ...d, storeItems: [...d.storeItems, item] }));
+            success('Prize added!');
+          };
+          const updateStoreItem = (id, patch) => {
+            setData(d => ({ ...d, storeItems: d.storeItems.map(i => i.id === id ? { ...i, ...patch } : i) }));
+            success('Prize updated');
+          };
+          const deleteStoreItem = (id) => {
+            setData(d => ({ ...d, storeItems: d.storeItems.filter(i => i.id !== id) }));
+            success('Prize removed');
+          };
+
+          // ── List actions ───────────────────────────────────────
+          const addListItem = (name) => {
+            const item = { id: uid(), name, completed: false, completedAt: null, sortOrder: data.listItems.length };
+            setData(d => ({ ...d, listItems: [...d.listItems, item] }));
+          };
+          const toggleListItem = (id, checked) => {
+            setData(d => ({
+              ...d,
+              listItems: d.listItems.map(i => i.id === id
+                ? { ...i, completed: !!checked, completedAt: checked ? new Date().toISOString() : null }
+                : i),
+            }));
+          };
+          const deleteListItem = (id) => {
+            setData(d => ({ ...d, listItems: d.listItems.filter(i => i.id !== id) }));
+          };
+
+          // ── Calendar actions ───────────────────────────────────
+          const addEvent = (name, desc, startDate, endDate, allDay) => {
+            const ev = { id: uid(), name, description: desc, startDate, endDate, allDay };
+            setData(d => ({ ...d, calendarEvents: [...d.calendarEvents, ev] }));
+            success('Event added!');
+          };
+          const deleteEvent = (id) => {
+            setData(d => ({ ...d, calendarEvents: d.calendarEvents.filter(e => e.id !== id) }));
+            success('Event removed');
+          };
+
+          // ── Calendar helpers ───────────────────────────────────
+          const calYear = calMonth.getFullYear();
+          const calMon = calMonth.getMonth();
+          const calDaysInMonth = new Date(calYear, calMon + 1, 0).getDate();
+          const calFirstDay = new Date(calYear, calMon, 1).getDay();
+          const calEventsForMonth = data.calendarEvents.filter(ev => {
+            const d = new Date(ev.startDate);
+            return d.getMonth() === calMon && d.getFullYear() === calYear;
+          });
+          const calEventDates = new Set(calEventsForMonth.map(ev => new Date(ev.startDate).getDate()));
+          const todayDate = new Date();
+
+          // ═══════════════════════════════════════════════════════
+          // KID SELECTOR
+          // ═══════════════════════════════════════════════════════
+          const KidSelector = () => (
+            <div className="flex gap-2 flex-wrap">
+              {data.kids.map(k => (
+                <button
+                  key={k.id}
+                  onClick={() => setSelectedKidId(k.id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-xl transition-all',
+                    k.id === selectedKidId
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                      : 'bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <span className="text-xl">{k.avatarEmoji}</span>
+                  <span className="font-medium">{k.name}</span>
+                  <Badge variant="secondary" className="ml-1 bg-primary/20 text-primary text-xs">
+                    {k.totalPoints} pts
+                  </Badge>
+                </button>
+              ))}
+              <button
+                onClick={() => setDlg({ open: true, type: 'addKid' })}
+                className="flex items-center gap-1 px-4 py-2 rounded-xl border border-dashed border-border hover:border-primary hover:text-primary text-muted-foreground transition-all"
+              >
+                <Icon name="plus" size={18} /> <span className="text-sm">Add Kid</span>
+              </button>
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // DASHBOARD TAB
+          // ═══════════════════════════════════════════════════════
+          const DashboardTab = () => (
+            <div className="space-y-6">
+              <Card className="bg-gradient-to-br from-purple-900/40 to-card border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">
+                        Hello {selectedKid.name}! {selectedKid.avatarEmoji}
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        Keep up the great work and earn more points!
+                      </p>
+                    </div>
+                    <div className="text-center sm:text-right">
+                      <div className="flex items-center gap-2 justify-center sm:justify-end">
+                        <Icon name="star" size={24} className="text-yellow-400" />
+                        <span className="text-3xl font-bold">{selectedKid.totalPoints}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Total Points</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Quick Points</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Quick +1', amount: 1, icon: 'plus', color: 'bg-green-600/20 text-green-400 hover:bg-green-600/30' },
+                      { label: 'Quick +5', amount: 5, icon: 'zap', color: 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30' },
+                      { label: 'Quick -1', amount: -1, icon: 'minus', color: 'bg-red-600/20 text-red-400 hover:bg-red-600/30' },
+                      { label: 'Custom', amount: 0, icon: 'edit3', color: 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30' },
+                    ].map(btn => (
+                      <Button
+                        key={btn.label}
+                        variant="outline"
+                        className={cn(btn.color, 'border-0 h-auto py-3 flex flex-col items-center gap-1')}
+                        onClick={() => btn.amount !== 0
+                          ? adjustPoints(btn.amount, btn.label)
+                          : setDlg({ open: true, type: 'customPoints' })
+                        }
+                      >
+                        <Icon name={btn.icon} size={16} />
+                        <span className="text-xs font-medium">{btn.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-base">Today's Progress</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setTab('goals')} className="text-primary text-xs">
+                      View All →
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {data.chores.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No goals set up yet. Go to Daily Goals to add some!</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Progress
+                          value={data.chores.length > 0
+                            ? (Object.values(todayChecks).filter(Boolean).length / data.chores.length) * 100
+                            : 0}
+                          className="h-3 flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground font-medium">
+                          {Object.values(todayChecks).filter(Boolean).length}/{data.chores.length}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {data.chores.slice(0, 5).map(chore => (
+                          <div key={chore.id} className="flex items-center justify-between py-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">{chore.icon}</span>
+                              <span className="text-sm">{chore.name}</span>
+                            </div>
+                            {todayChecks[chore.id]
+                              ? <Badge className="bg-green-600/20 text-green-400">+{chore.points} pts</Badge>
+                              : <Badge variant="outline" className="text-muted-foreground">{chore.points} pts</Badge>}
+                          </div>
+                        ))}
+                        {data.chores.length > 5 && (
+                          <p className="text-xs text-muted-foreground">+{data.chores.length - 5} more goals</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-base">Recent Activity</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setTab('points')} className="text-primary text-xs">
+                      View All →
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {weekLogs.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No activity yet. Complete some goals to see them here!</p>
+                  ) : (
+                    <ScrollArea className="max-h-64">
+                      <div className="space-y-2">
+                        {weekLogs.slice(0, 10).map(log => (
+                          <div key={log.id} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">{log.choreId ? (data.chores.find(c => c.id === log.choreId)?.icon || '✅') : (log.action === 'purchase' ? '🛍️' : '⭐')}</span>
+                              <div>
+                                <p className="text-sm">{log.reason || 'Activity'}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(log.date).toLocaleDateString()} at {new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge className={log.points >= 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}>
+                              {log.points >= 0 ? '+' : ''}{log.points}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // GOALS TAB
+          // ═══════════════════════════════════════════════════════
+          const GoalsTab = () => (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">Daily Goals</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Toggle goals for {selectedKid.name} to award points
+                  </p>
+                </div>
+                <Button onClick={() => setDlg({ open: true, type: 'addChore' })} className="bg-primary hover:bg-primary/90">
+                  <Icon name="plus" size={16} /> Add Goal
+                </Button>
+              </div>
+
+              {data.chores.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Icon name="target" size={40} className="mx-auto mb-3 text-muted-foreground" />
+                    <h3 className="text-lg font-medium mb-1">No goals yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Create your first daily goal to start tracking!</p>
+                    <Button onClick={() => setDlg({ open: true, type: 'addChore' })} className="bg-primary hover:bg-primary/90">
+                      <Icon name="plus" size={16} /> Add Goal
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {data.chores.map(chore => (
+                    <Card key={chore.id} className="bg-card/80 hover:bg-card transition-colors">
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl w-8 text-center">{chore.icon}</span>
+                          <div>
+                            <p className="font-medium">{chore.name}</p>
+                            <p className="text-xs text-muted-foreground">+{chore.points} points</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={!!todayChecks[chore.id]}
+                            onCheckedChange={checked => toggleChore(chore.id, checked)}
+                          />
+                          <button
+                            onClick={() => setDlg({ open: true, type: 'editChore', data: chore })}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                          >
+                            <Icon name="edit3" size={14} />
+                          </button>
+                          <button
+                            onClick={() => deleteChore(chore.id)}
+                            className="text-muted-foreground hover:text-destructive p-1"
+                          >
+                            <Icon name="trash2" size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // POINTS TAB
+          // ═══════════════════════════════════════════════════════
+          const PointsTab = () => (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold">Points Dashboard</h2>
+                <p className="text-sm text-muted-foreground">Track {selectedKid.name}'s progress</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <GaugeChart value={weekTotal} max={Math.max(weekTotal * 2, 10)} label="This Week" />
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-purple-900/40 to-card border-primary/20">
+                  <CardContent className="p-6 text-center flex flex-col items-center justify-center">
+                    <Icon name="star" size={32} className="text-yellow-400 mb-2" />
+                    <span className="text-4xl font-bold">{selectedKid.totalPoints}</span>
+                    <p className="text-xs text-muted-foreground mt-1">Total Points Bank</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <Icon name="trendingUp" size={32} className="text-green-400 mb-2 mx-auto" />
+                    <span className="text-4xl font-bold">{weekData.filter(d => d.pts > 0).length}</span>
+                    <p className="text-xs text-muted-foreground mt-1">Active Days This Week</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Weekly Points</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-end gap-2 h-40">
+                    {weekData.map((d, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-xs font-medium text-primary">{d.pts > 0 ? d.pts : ''}</span>
+                        <div className="w-full bg-secondary/50 rounded-t-md relative" style={{ height: '100%' }}>
+                          <div
+                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-md transition-all duration-500"
+                            style={{ height: `${maxChart > 0 ? (d.pts / maxChart) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{d.day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Activity Log</CardTitle></CardHeader>
+                <CardContent>
+                  {weekLogs.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-8 text-center">No activity this week</p>
+                  ) : (
+                    <ScrollArea className="max-h-96">
+                      <div className="space-y-2">
+                        {weekLogs.map(log => (
+                          <div key={log.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg">{log.choreId ? (data.chores.find(c => c.id === log.choreId)?.icon || '✅') : (log.action === 'purchase' ? '🛍️' : '⭐')}</span>
+                              <div>
+                                <p className="text-sm font-medium">{log.reason || (log.choreId ? (data.chores.find(c => c.id === log.choreId)?.name || 'Goal') : 'Activity')}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(log.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
+                                  {new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge className={log.points >= 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}>
+                              {log.points >= 0 ? '+' : ''}{log.points}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // STORE TAB
+          // ═══════════════════════════════════════════════════════
+          const StoreTab = () => (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">Prize Store</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedKid.name} has <span className="text-primary font-bold">{selectedKid.totalPoints}</span> points to spend
+                  </p>
+                </div>
+                <Button onClick={() => setDlg({ open: true, type: 'addStoreItem' })} className="bg-primary hover:bg-primary/90">
+                  <Icon name="plus" size={16} /> Add Prize
+                </Button>
+              </div>
+
+              {data.storeItems.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Icon name="gift" size={40} className="mx-auto mb-3 text-muted-foreground" />
+                    <h3 className="text-lg font-medium mb-1">No prizes yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Add rewards your kids can earn with points!</p>
+                    <Button onClick={() => setDlg({ open: true, type: 'addStoreItem' })} className="bg-primary hover:bg-primary/90">
+                      <Icon name="plus" size={16} /> Add Prize
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {data.storeItems.filter(i => i.isActive).map(item => (
+                    <Card key={item.id} className="bg-card/80 hover:bg-card transition-all hover:border-primary/30 group">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <span className="text-3xl">{item.icon}</span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setDlg({ open: true, type: 'editStoreItem', data: item })}
+                              className="p-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <Icon name="edit3" size={14} />
+                            </button>
+                            <button
+                              onClick={() => deleteStoreItem(item.id)}
+                              className="p-1 text-muted-foreground hover:text-destructive"
+                            >
+                              <Icon name="trash2" size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <h3 className="font-medium text-sm mb-1">{item.name}</h3>
+                        {item.description && <p className="text-xs text-muted-foreground mb-3">{item.description}</p>}
+                        <div className="flex items-center justify-between mt-auto">
+                          <Badge className="bg-primary/20 text-primary">
+                            <Icon name="star" size={12} />{item.pointCost} pts
+                          </Badge>
+                          <Button
+                            size="sm"
+                            disabled={selectedKid.totalPoints < item.pointCost}
+                            onClick={() => purchaseItem(item.id)}
+                            className={
+                              selectedKid.totalPoints >= item.pointCost
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-secondary text-muted-foreground'
+                            }
+                          >
+                            <Icon name="shoppingBag" size={14} />
+                            {selectedKid.totalPoints >= item.pointCost ? 'Buy' : 'Not Enough'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // CALENDAR TAB
+          // ═══════════════════════════════════════════════════════
+          const CalendarTab = () => {
+            const upcomingEvents = data.calendarEvents
+              .filter(e => new Date(e.startDate) >= new Date(new Date().toDateString()))
+              .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+            return (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold">Calendar</h2>
+                  <Button onClick={() => setDlg({ open: true, type: 'addEvent' })} className="bg-primary hover:bg-primary/90">
+                    <Icon name="plus" size={16} /> Add Event
+                  </Button>
+                </div>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <button onClick={() => setCalMonth(new Date(calYear, calMon - 1))} className="p-2 rounded-lg hover:bg-secondary">
+                        <Icon name="chevronLeft" size={20} />
+                      </button>
+                      <h3 className="text-lg font-bold">
+                        {calMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <button onClick={() => setCalMonth(new Date(calYear, calMon + 1))} className="p-2 rounded-lg hover:bg-secondary">
+                        <Icon name="chevronRight" size={20} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="text-xs text-muted-foreground py-2 font-medium">{d}</div>
+                      ))}
+                      {Array.from({ length: calFirstDay }).map((_, i) => (
+                        <div key={'empty-' + i} />
+                      ))}
+                      {Array.from({ length: calDaysInMonth }).map((_, i) => {
+                        const day = i + 1;
+                        const hasEvent = calEventDates.has(day);
+                        const isToday = day === todayDate.getDate() && calMon === todayDate.getMonth() && calYear === todayDate.getFullYear();
+                        return (
+                          <div
+                            key={day}
+                            className={cn(
+                              'relative py-2 rounded-lg text-sm cursor-pointer transition-all',
+                              isToday ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-secondary'
+                            )}
+                          >
+                            {day}
+                            {hasEvent && (
+                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-pink-400" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3"><CardTitle className="text-base">Upcoming Events</CardTitle></CardHeader>
+                  <CardContent>
+                    {upcomingEvents.length === 0 ? (
+                      <p className="text-muted-foreground text-sm py-4 text-center">No events yet</p>
+                    ) : (
+                      <ScrollArea className="max-h-64">
+                        <div className="space-y-2">
+                          {upcomingEvents.map(event => (
+                            <div key={event.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                              <div>
+                                <p className="text-sm font-medium">{event.name}</p>
+                                {event.description && <p className="text-xs text-muted-foreground">{event.description}</p>}
+                                <p className="text-xs text-primary mt-0.5">
+                                  {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                  {event.allDay ? ' (All Day)' : ` at ${new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => deleteEvent(event.id)}
+                                className="text-muted-foreground hover:text-destructive p-1"
+                              >
+                                <Icon name="trash2" size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // LISTS TAB
+          // ═══════════════════════════════════════════════════════
+          const ListsTab = () => {
+            const activeItems = data.listItems.filter(i => !i.completed);
+            const completedItems = data.listItems.filter(i => i.completed);
+            return (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold">My Lists</h2>
+                    <p className="text-sm text-muted-foreground">Track activities, projects, and ideas</p>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <form
+                      onSubmit={(ev) => {
+                        ev.preventDefault();
+                        const form = ev.target;
+                        const name = form.elements.namedItem('listName').value.trim();
+                        if (!name) return;
+                        addListItem(name);
+                        form.reset();
+                      }}
+                      className="flex gap-2"
+                    >
+                      <Input name="listName" placeholder="Add a new item..." className="bg-secondary/50" />
+                      <Button type="submit" className="bg-primary hover:bg-primary/90 shrink-0">
+                        <Icon name="plus" size={16} />
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {activeItems.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Icon name="listChecks" size={16} /> Active
+                        <Badge variant="secondary" className="ml-auto">{activeItems.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-1">
+                        {activeItems.map(item => (
+                          <div key={item.id} className="flex items-center gap-3 py-2 group">
+                            <Checkbox checked={false} onCheckedChange={checked => toggleListItem(item.id, checked)} />
+                            <span className="flex-1 text-sm">{item.name}</span>
+                            <button
+                              onClick={() => deleteListItem(item.id)}
+                              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                            >
+                              <Icon name="trash2" size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {completedItems.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Icon name="check" size={16} className="text-green-400" /> Completed
+                        <Badge variant="secondary" className="ml-auto">{completedItems.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-1">
+                        {completedItems.map(item => (
+                          <div key={item.id} className="flex items-center gap-3 py-2 text-muted-foreground group">
+                            <Checkbox checked={true} onCheckedChange={checked => toggleListItem(item.id, checked)} />
+                            <span className="flex-1 text-sm line-through">{item.name}</span>
+                            {item.completedAt && (
+                              <span className="text-xs">{new Date(item.completedAt).toLocaleDateString()}</span>
+                            )}
+                            <button
+                              onClick={() => deleteListItem(item.id)}
+                              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                            >
+                              <Icon name="trash2" size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // SETTINGS TAB
+          // ═══════════════════════════════════════════════════════
+          const SettingsTab = () => (
+            <div className="space-y-6 max-w-lg">
+              <h2 className="text-xl font-bold">Settings</h2>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Icon name="user" size={16} /> Account
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Name</span>
+                    <span className="text-sm font-medium">{family.name}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Email</span>
+                    <span className="text-sm font-medium">{family.email}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Icon name="userPlus" size={16} /> Manage Kids
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {data.kids.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-2">No kids added yet.</p>
+                  )}
+                  {data.kids.map(kid => (
+                    <div key={kid.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{kid.avatarEmoji}</span>
+                        <div>
+                          <p className="font-medium">{kid.name}</p>
+                          <p className="text-xs text-muted-foreground">{kid.totalPoints} total points</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => deleteKid(kid.id)}
+                      >
+                        <Icon name="trash2" size={14} />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2 border-dashed"
+                    onClick={() => setDlg({ open: true, type: 'addKid' })}
+                  >
+                    <Icon name="plus" size={16} /> Add Another Kid
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Icon name="download" size={16} /> Data
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Your data is stored locally in this browser. Use the buttons below to export a backup or wipe all data.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'dada-dojo-backup.json';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        success('Backup downloaded');
+                      }}
+                    >
+                      <Icon name="download" size={16} /> Export Backup
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        if (confirm('This will permanently delete ALL data (kids, goals, points, store, lists, calendar) on this device. Continue?')) {
+                          localStorage.removeItem('dadaDojoData_v1');
+                          success('All data cleared');
+                          setTimeout(() => location.reload(), 600);
+                        }
+                      }}
+                    >
+                      <Icon name="trash2" size={16} /> Clear All Data
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button
+                variant="outline"
+                className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+                onClick={onSignOut}
+              >
+                <Icon name="logOut" size={16} /> Sign Out
+              </Button>
+            </div>
+          );
+
+          // ═══════════════════════════════════════════════════════
+          // DIALOGS
+          // ═══════════════════════════════════════════════════════
+          const EmojiPicker = ({ name, options, defaultValue }) => {
+            const [val, setVal] = useState(defaultValue || (options[0] || ''));
+            useEffect(() => { setVal(defaultValue || (options[0] || '')); }, [defaultValue]);
+            return (
+              <div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {options.map(em => (
+                    <button
+                      key={em}
+                      type="button"
+                      className={cn('text-xl p-1 rounded transition-colors', val === em ? 'bg-primary/30' : 'hover:bg-secondary')}
+                      onClick={() => setVal(em)}
+                    >
+                      {em}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="hidden"
+                  name={name}
+                  value={val}
+                />
+                <Input
+                  name={name + '_text'}
+                  value={val}
+                  onChange={e => setVal(e.target.value)}
+                  placeholder="or type..."
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+            );
+          };
+
+          const AddKidDialog = () => (
+            <>
+              <DialogHeader><DialogTitle>Add a Kid</DialogTitle></DialogHeader>
+              <form
+                onSubmit={(ev) => {
+                  ev.preventDefault();
+                  const f = ev.target;
+                  const name = f.elements.namedItem('kidName').value.trim();
+                  const emoji = f.elements.namedItem('kidEmoji').value.trim();
+                  if (!name) return;
+                  addKid(name, emoji || '🥋');
+                  setDlg({ open: false, type: '' });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <Label>Name</Label>
+                  <Input name="kidName" placeholder="Your kid's name" className="bg-secondary/50 mt-1" required />
+                </div>
+                <div>
+                  <Label>Avatar Emoji</Label>
+                  <EmojiPicker
+                    name="kidEmoji"
+                    options={['🥋', '🌟', '🦸', '🐉', '🚀', '🎮', '🎨', '⚽', '🧩', '🎸']}
+                    defaultValue="🥋"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="ghost" onClick={() => setDlg({ open: false, type: '' })}>Cancel</Button>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">Add Kid</Button>
+                </DialogFooter>
+              </form>
+            </>
+          );
+
+          const ChoreDialog = () => {
+            const isEdit = dlg.type === 'editChore';
+            return (
+              <>
+                <DialogHeader><DialogTitle>{isEdit ? 'Edit Goal' : 'Add Goal'}</DialogTitle></DialogHeader>
+                <form
+                  onSubmit={(ev) => {
+                    ev.preventDefault();
+                    const f = ev.target;
+                    const name = f.elements.namedItem('choreName').value.trim();
+                    const icon = f.elements.namedItem('choreIcon').value.trim();
+                    const points = parseInt(f.elements.namedItem('chorePoints').value);
+                    if (!name) return;
+                    if (isEdit) {
+                      updateChore(dlg.data.id, { name, icon: icon || '✅', points });
+                    } else {
+                      addChore(name, icon || '✅', points);
+                    }
+                    setDlg({ open: false, type: '' });
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <Label>Goal Name</Label>
+                    <Input name="choreName" defaultValue={dlg.data?.name || ''} placeholder="e.g., Brush Teeth" className="bg-secondary/50 mt-1" required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Icon</Label>
+                      <div className="mt-1">
+                        <EmojiPicker
+                          name="choreIcon"
+                          options={['✅', '🪥', '🧹', '📖', '🍎', '🛁', '🎯', '💪', '🧠', '🎮', '🎵', '🏃']}
+                          defaultValue={dlg.data?.icon || '✅'}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Points</Label>
+                      <Input name="chorePoints" type="number" min="1" defaultValue={dlg.data?.points || 1} className="bg-secondary/50 mt-1" required />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setDlg({ open: false, type: '' })}>Cancel</Button>
+                    <Button type="submit" className="bg-primary hover:bg-primary/90">{isEdit ? 'Save' : 'Add Goal'}</Button>
+                  </DialogFooter>
+                </form>
+              </>
+            );
+          };
+
+          const StoreItemDialog = () => {
+            const isEdit = dlg.type === 'editStoreItem';
+            return (
+              <>
+                <DialogHeader><DialogTitle>{isEdit ? 'Edit Prize' : 'Add Prize'}</DialogTitle></DialogHeader>
+                <form
+                  onSubmit={(ev) => {
+                    ev.preventDefault();
+                    const f = ev.target;
+                    const name = f.elements.namedItem('storeName').value.trim();
+                    const desc = f.elements.namedItem('storeDesc').value.trim();
+                    const cost = parseInt(f.elements.namedItem('storeCost').value);
+                    const icon = f.elements.namedItem('storeIcon').value.trim();
+                    if (!name || isNaN(cost)) return;
+                    if (isEdit) {
+                      updateStoreItem(dlg.data.id, { name, description: desc, pointCost: cost, icon: icon || '🎁' });
+                    } else {
+                      addStoreItem(name, desc, cost, icon || '🎁');
+                    }
+                    setDlg({ open: false, type: '' });
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <Label>Prize Name</Label>
+                    <Input name="storeName" defaultValue={dlg.data?.name || ''} placeholder="e.g., Extra Screen Time" className="bg-secondary/50 mt-1" required />
+                  </div>
+                  <div>
+                    <Label>Description (optional)</Label>
+                    <Input name="storeDesc" defaultValue={dlg.data?.description || ''} placeholder="Brief description" className="bg-secondary/50 mt-1" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Point Cost</Label>
+                      <Input name="storeCost" type="number" min="1" defaultValue={dlg.data?.pointCost || 10} className="bg-secondary/50 mt-1" required />
+                    </div>
+                    <div>
+                      <Label>Icon</Label>
+                      <div className="mt-1">
+                        <EmojiPicker
+                          name="storeIcon"
+                          options={['🎁', '🎮', '🍫', '🎬', '🏃', '📚', '🎪', '🍦', '🎨', '🌟', '🎸', '🛍️']}
+                          defaultValue={dlg.data?.icon || '🎁'}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setDlg({ open: false, type: '' })}>Cancel</Button>
+                    <Button type="submit" className="bg-primary hover:bg-primary/90">{isEdit ? 'Save' : 'Add Prize'}</Button>
+                  </DialogFooter>
+                </form>
+              </>
+            );
+          };
+
+          const CustomPointsDialog = () => (
+            <>
+              <DialogHeader><DialogTitle>Adjust Points</DialogTitle></DialogHeader>
+              <form
+                onSubmit={(ev) => {
+                  ev.preventDefault();
+                  const f = ev.target;
+                  const amount = parseInt(f.elements.namedItem('ptsAmount').value);
+                  const reason = f.elements.namedItem('ptsReason').value.trim();
+                  if (isNaN(amount)) return;
+                  adjustPoints(amount, reason || 'Manual adjustment');
+                  setDlg({ open: false, type: '' });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <Label>Amount (positive or negative)</Label>
+                  <Input name="ptsAmount" type="number" placeholder="e.g., 5 or -3" className="bg-secondary/50 mt-1" required />
+                </div>
+                <div>
+                  <Label>Reason (optional)</Label>
+                  <Input name="ptsReason" placeholder="e.g., Great job at school!" className="bg-secondary/50 mt-1" />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="ghost" onClick={() => setDlg({ open: false, type: '' })}>Cancel</Button>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">Apply</Button>
+                </DialogFooter>
+              </form>
+            </>
+          );
+
+          const AddEventDialog = () => (
+            <>
+              <DialogHeader><DialogTitle>Add Event</DialogTitle></DialogHeader>
+              <form
+                onSubmit={(ev) => {
+                  ev.preventDefault();
+                  const f = ev.target;
+                  const name = f.elements.namedItem('evtName').value.trim();
+                  const desc = f.elements.namedItem('evtDesc').value.trim();
+                  const startDate = f.elements.namedItem('evtStart').value;
+                  const endDate = f.elements.namedItem('evtEnd').value;
+                  const allDay = f.elements.namedItem('evtAllDay').checked;
+                  if (!name || !startDate || !endDate) return;
+                  addEvent(name, desc, startDate, endDate, allDay);
+                  setDlg({ open: false, type: '' });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <Label>Event Name</Label>
+                  <Input name="evtName" placeholder="e.g., Family Game Night" className="bg-secondary/50 mt-1" required />
+                </div>
+                <div>
+                  <Label>Description (optional)</Label>
+                  <Input name="evtDesc" placeholder="Details..." className="bg-secondary/50 mt-1" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Start Date</Label>
+                    <Input name="evtStart" type="datetime-local" className="bg-secondary/50 mt-1" required />
+                  </div>
+                  <div>
+                    <Label>End Date</Label>
+                    <Input name="evtEnd" type="datetime-local" className="bg-secondary/50 mt-1" required />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="evtAllDay" name="evtAllDay" className="dd-checkbox" defaultChecked />
+                  <Label htmlFor="evtAllDay">All Day Event</Label>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="ghost" onClick={() => setDlg({ open: false, type: '' })}>Cancel</Button>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">Add Event</Button>
+                </DialogFooter>
+              </form>
+            </>
+          );
+
+          const dialogRenderer = () => {
+            if (!dlg.open) return null;
+            let content = null;
+            if (dlg.type === 'addKid') content = <AddKidDialog />;
+            else if (dlg.type === 'addChore' || dlg.type === 'editChore') content = <ChoreDialog />;
+            else if (dlg.type === 'addStoreItem' || dlg.type === 'editStoreItem') content = <StoreItemDialog />;
+            else if (dlg.type === 'customPoints') content = <CustomPointsDialog />;
+            else if (dlg.type === 'addEvent') content = <AddEventDialog />;
+            if (!content) return null;
+            return (
+              <Dialog open={dlg.open} onOpenChange={o => setDlg({ ...dlg, open: o })}>
+                <DialogContent>
+                  {content}
+                </DialogContent>
+              </Dialog>
+            );
+          };
+
+          // ═══════════════════════════════════════════════════════
+          // RENDER
+          // ═══════════════════════════════════════════════════════
+          return (
+            <div className="min-h-screen flex bg-background">
+              {showInstallBanner && (
+                <div className="anim-slide-up fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-card border border-primary/30 rounded-xl p-4 shadow-lg shadow-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">🥋</div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Install Dada Dojo</p>
+                      <p className="text-xs text-muted-foreground">Add to home screen for the best experience</p>
+                    </div>
+                    <Button size="sm" onClick={handleInstall} className="bg-primary hover:bg-primary/90 shrink-0">
+                      Install
+                    </Button>
+                    <button onClick={() => setShowInstallBanner(false)} className="text-muted-foreground hover:text-foreground p-1">
+                      <Icon name="x" size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card/50 p-4 shrink-0">
+                <div className="flex items-center gap-3 mb-8 px-2">
+                  <span className="text-3xl">🥋</span>
+                  <h1 className="text-xl font-bold gradient-text">Dada Dojo</h1>
+                </div>
+                <nav className="flex-1 space-y-1">
+                  {TABS.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setTab(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium',
+                        tab === item.id
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                      )}
+                    >
+                      <Icon name={item.icon} size={20} />
+                      {item.label}
+                    </button>
+                  ))}
+                </nav>
+                <div className="border-t border-border pt-4 mt-4">
+                  <div className="text-sm text-muted-foreground truncate px-2">{family.name}</div>
+                  <button
+                    onClick={onSignOut}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive transition-all mt-2"
+                  >
+                    <Icon name="logOut" size={16} /> Sign Out
+                  </button>
+                </div>
+              </aside>
+
+              <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🥋</span>
+                  <span className="font-bold text-lg gradient-text">Dada Dojo</span>
+                </div>
+                <button onClick={() => setMobileNav(!mobileNav)} className="text-foreground p-1">
+                  <Icon name={mobileNav ? 'x' : 'menu'} size={24} />
+                </button>
+              </div>
+
+              {mobileNav && (
+                <>
+                  <div className="md:hidden fixed inset-0 bg-black/50 z-40 anim-fade" onClick={() => setMobileNav(false)} />
+                  <aside className="md:hidden fixed top-0 left-0 bottom-0 w-64 z-50 bg-card border-r border-border p-4 anim-slide-left">
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                      <span className="text-2xl">🥋</span>
+                      <span className="font-bold text-lg">Dada Dojo</span>
+                    </div>
+                    <nav className="space-y-1">
+                      {TABS.map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => { setTab(item.id); setMobileNav(false); }}
+                          className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium',
+                            tab === item.id ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+                          )}
+                        >
+                          <Icon name={item.icon} size={20} /> {item.label}
+                        </button>
+                      ))}
+                    </nav>
+                    <button
+                      onClick={onSignOut}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive mt-6"
+                    >
+                      <Icon name="logOut" size={16} /> Sign Out
+                    </button>
+                  </aside>
+                </>
+              )}
+
+              <main className="flex-1 md:p-6 p-4 pt-16 md:pt-6 overflow-y-auto min-h-screen">
+                {data.kids.length === 0 && tab !== 'settings' ? (
+                  <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                    <div className="text-6xl mb-4">🥋</div>
+                    <h2 className="text-2xl font-bold mb-2">Welcome to Dada Dojo!</h2>
+                    <p className="text-muted-foreground mb-6 max-w-md">
+                      Start by adding your first kid. Each child gets their own points, goals, and rewards.
+                    </p>
+                    <Button onClick={() => setDlg({ open: true, type: 'addKid' })} className="bg-primary hover:bg-primary/90">
+                      <Icon name="plus" size={18} /> Add Your First Kid
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <KidSelector />
+                    <div className="mt-6">
+                      {tab === 'dashboard' && selectedKid && <DashboardTab />}
+                      {tab === 'goals' && selectedKid && <GoalsTab />}
+                      {tab === 'points' && selectedKid && <PointsTab />}
+                      {tab === 'store' && selectedKid && <StoreTab />}
+                      {tab === 'calendar' && <CalendarTab />}
+                      {tab === 'lists' && <ListsTab />}
+                      {tab === 'settings' && <SettingsTab />}
+                    </div>
+                  </>
+                )}
+              </main>
+
+              {dialogRenderer()}
+            </div>
+          );
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // ROOT APP
+        // ════════════════════════════════════════════════════════════════
+        function App() {
+          const [family, setFamily] = useState(() => loadData().family);
+          const [bootstrapped, setBootstrapped] = useState(false);
+
+          useEffect(() => { setBootstrapped(true); }, []);
+
+          if (!bootstrapped) {
+            return (
+              <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-4xl anim-bounce">🥋</div>
+              </div>
+            );
+          }
+
+          return (
+            <ToastProvider>
+              {family
+                ? <Home family={family} onSignOut={() => {
+                    const data = loadData();
+                    saveData({ ...data, family: null });
+                    setFamily(null);
+                  }} />
+                : <AuthForm onAuthed={fam => setFamily(fam)} />
+              }
+            </ToastProvider>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+      };
+
+      // Boot
+      if (window.__ddBootstrap) {
+        window.__ddBootstrap({
+          Icon, Button, Card, CardHeader, CardTitle, CardContent,
+          Input, Label, Badge, Progress, Switch, Checkbox, Separator,
+          ScrollArea, Dialog, DialogContent, DialogHeader, DialogTitle,
+          DialogFooter, GaugeChart, ToastProvider, useToast,
+          uid, todayStr, cn, loadData, saveData, DEFAULT_DATA,
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
